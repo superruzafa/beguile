@@ -1,0 +1,8 @@
+*
+!/.gitignore
+!/.gitattributes
+!/src
+!/src/*.h
+!/src/*.h.in
+!/tests
+!/tests/*.c

@@ -1,0 +1,6 @@
+#define BEGUILE_NAME "@PACKAGE_NAME@"
+#define BEGUILE_VERSION "@PACKAGE_VERSION@"
+#define BEGUILE_AUTHOR "Alfonso Ruzafa"
+#define BEGUILE_EMAIL  "@PACKAGE_BUGREPORT@"
+#define BEGUILE_BRAND "@PACKAGE_NAME@, a BDD framework for C"
+
