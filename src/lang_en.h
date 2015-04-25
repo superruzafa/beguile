@@ -33,12 +33,17 @@
 #define should_be_null(x)                       BEGUILE_ASSERT_SHOULD_NOT_BE_EQUAL_TO(x)
 #define should_not_be_null(x)                   BEGUILE_ASSERT_SHOULD_NOT_BE_EQUAL_TO(x)
 
-#define BEGUILE_OK                              "OK"
-#define BEGUILE_FAIL                            "FAIL"
+#define BEGUILE_MSG_OK                          "OK"
+#define BEGUILE_MSG_FAIL                        "FAIL"
 
-#define BEGUILE_SUMMARY_FEATURES                "%d features"
-#define BEGUILE_SUMMARY_SCENARIOS               "%d scenarios"
-#define BEGUILE_SUMMARY_FAILED                  "%d failed"
+#define BEGUILE_MSG_SUMMARY_FEATURES            "%d features"
+#define BEGUILE_MSG_SUMMARY_SCENARIOS           "%d scenarios"
+#define BEGUILE_MSG_SUMMARY_STEPS               "%d steps"
+#define BEGUILE_MSG_SUMMARY_ALL_PASSED          "all passed"
+#define BEGUILE_MSG_SUMMARY_FAILED              "%d failed"
+
+#define BEGUILE_MSG_COULD_NOT_PIPE              "Couldn't create scenario pipe"
+#define BEGUILE_MSG_COULD_NOT_FORK              "Couldn't fork scenario subprocess"
 
 #endif
 

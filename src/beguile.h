@@ -85,31 +85,38 @@ beguile_hook beguile_hook_function = NULL;
     unsigned int beguile_stats_failed_feature = 0;                             \
     unsigned int beguile_stats_total_scenario = 0;                             \
     unsigned int beguile_stats_failed_scenario = 0;                            \
+    unsigned int beguile_stats_total_step = 0;                                 \
+    unsigned int beguile_stats_failed_step = 0;                                \
     int beguile_intro_is_first = 1;                                            \
     int beguile_feature_has_failed;                                            \
     int beguile_scenario_has_failed;                                           \
+    int beguile_written_bytes;                                                 \
     void *beguile_background_section;                                          \
     int beguile_background_enabled;                                            \
     int beguile_background_printed;                                            \
     int beguile_outside_background;                                            \
     jmp_buf beguile_jmp_buf;                                                   \
     pid_t beguile_pid;                                                         \
+    int beguile_pipe[2];                                                       \
     BEGUILE_REGISTER_SIGNAL_HANDLER
 
 #define BEGUILE_SUMMARY_COMPONENT(component, total, failed)                    \
-    BEGUILE_PRINT(component " ", total);                                       \
+    BEGUILE_PRINT(component " (", total);                                      \
     if (failed == 0) {                                                         \
-        BEGUILE_PRINT("(" BEGUILE_STYLE_SUCCESS(BEGUILE_SUMMARY_FAILED) ")\n", failed);   \
+        BEGUILE_PRINT(BEGUILE_STYLE_SUCCESS(BEGUILE_MSG_SUMMARY_ALL_PASSED)); \
     } else {                                                                   \
-        BEGUILE_PRINT("(" BEGUILE_STYLE_FAILURE(BEGUILE_SUMMARY_FAILED) ")\n", failed);   \
-    }
+        BEGUILE_PRINT(BEGUILE_STYLE_FAILURE(BEGUILE_MSG_SUMMARY_FAILED), failed); \
+    }                                                                          \
+    BEGUILE_PRINT(")\n");
 
 #define FeatureRunnerSummary                                                   \
     BEGUILE_EOL;                                                               \
-    BEGUILE_SUMMARY_COMPONENT(BEGUILE_SUMMARY_FEATURES,                        \
+    BEGUILE_SUMMARY_COMPONENT(BEGUILE_MSG_SUMMARY_FEATURES,                    \
         beguile_stats_total_feature, beguile_stats_failed_feature);            \
-    BEGUILE_SUMMARY_COMPONENT(BEGUILE_SUMMARY_SCENARIOS,                       \
-        beguile_stats_total_scenario, beguile_stats_failed_scenario);
+    BEGUILE_SUMMARY_COMPONENT(BEGUILE_MSG_SUMMARY_SCENARIOS,                   \
+        beguile_stats_total_scenario, beguile_stats_failed_scenario);          \
+    BEGUILE_SUMMARY_COMPONENT(BEGUILE_MSG_SUMMARY_STEPS,                       \
+        beguile_stats_total_step, beguile_stats_failed_step);
 
 #define FeatureRunnerFooter                                                    \
     FeatureRunnerSummary                                                       \
@@ -173,9 +180,18 @@ beguile_hook beguile_hook_function = NULL;
     beguile_background_enabled = 1;
 
 #define BEGUILE_SCENARIO(scenario_keyword, scenario_name)                      \
-    {                                                                          \
+    do {                                                                       \
         ++beguile_stats_total_scenario;                                        \
         beguile_scenario_has_failed = 0;                                       \
+        if (pipe(beguile_pipe) != 0) {                                         \
+            beguile_scenario_has_failed = 1;                                   \
+            BEGUILE_EOL;                                                       \
+            BEGUILE_INDENT_1;                                                  \
+            BEGUILE_PRINT(BEGUILE_STYLE_SCENARIO(scenario_keyword ":") " "     \
+                scenario_name " "                                              \
+                BEGUILE_STYLE_FAILURE(BEGUILE_MSG_COULD_NOT_PIPE) "\n");       \
+                break;                                                         \
+        };                                                                     \
         beguile_pid = fork();                                                  \
         if (beguile_pid < 0) {                                                 \
             beguile_scenario_has_failed = 1;                                   \
@@ -183,13 +199,23 @@ beguile_hook beguile_hook_function = NULL;
             BEGUILE_INDENT_1;                                                  \
             BEGUILE_PRINT(BEGUILE_STYLE_SCENARIO(scenario_keyword ":") " "     \
                 scenario_name " "                                              \
-                BEGUILE_STYLE_FAILURE("Couldn't fork process") "\n");          \
+                BEGUILE_STYLE_FAILURE(BEGUILE_MSG_COULD_NOT_FORK) "\n");       \
         } else if (beguile_pid > 0) {                                          \
+            char beguile_message;                                              \
+            close(beguile_pipe[1]);                                            \
+            while (read(beguile_pipe[0], &beguile_message, sizeof(char))) {    \
+                switch (beguile_message) {                                     \
+                    case 's': ++beguile_stats_total_step; break;               \
+                    case '+': ++beguile_stats_failed_step; break;              \
+                    case '-': --beguile_stats_failed_step; break;              \
+                }                                                              \
+            }                                                                  \
             int beguile_status;                                                \
             waitpid(beguile_pid, &beguile_status, 0);                          \
             beguile_background_printed = 1;                                    \
             beguile_scenario_has_failed = beguile_status != EXIT_SUCCESS;      \
         } else {                                                               \
+            close(beguile_pipe[0]);                                            \
             if (beguile_background_section != NULL                             \
                 && !setjmp(beguile_jmp_buf)) {                                 \
                 goto *beguile_background_section;                              \
@@ -199,7 +225,8 @@ beguile_hook beguile_hook_function = NULL;
             beguile_outside_background = 1;                                    \
             BEGUILE_EOL;                                                       \
             BEGUILE_INDENT_1;                                                  \
-            BEGUILE_PRINT(BEGUILE_STYLE_SCENARIO(scenario_keyword ":") " " scenario_name "\n");
+            BEGUILE_PRINT(BEGUILE_STYLE_SCENARIO(scenario_keyword ":") " "     \
+                scenario_name "\n");
 
 #define BEGUILE_ENDSCENARIO                                                    \
             beguile_outside_background = 0;                                    \
@@ -211,22 +238,30 @@ beguile_hook beguile_hook_function = NULL;
         }                                                                      \
         if (beguile_hook_function != NULL)                                     \
             beguile_hook_function(BEGUILE_HOOK_AFTER_SCENARIO);                \
-    }
+    } while(0);
+
+#define BEGUILE_MESSAGE_PARENT(message)                                        \
+    beguile_written_bytes = write(beguile_pipe[1], message, sizeof(char))
 
 #define BEGUILE_STEP(step_keyword, sentence, statement)                        \
     if (beguile_hook_function != NULL)                                         \
         beguile_hook_function(BEGUILE_HOOK_BEFORE_STEP);                       \
+    BEGUILE_MESSAGE_PARENT("s");                                               \
     if (!beguile_background_printed || beguile_outside_background) {           \
         BEGUILE_INDENT_2;                                                      \
         BEGUILE_PRINT(BEGUILE_STYLE_STEP(step_keyword) " " sentence);          \
     }                                                                          \
+    BEGUILE_MESSAGE_PARENT("+");                                               \
     statement;                                                                 \
+    BEGUILE_MESSAGE_PARENT("-");                                               \
     if (!beguile_background_printed || beguile_outside_background) BEGUILE_EOL; \
     if (beguile_hook_function != NULL)                                         \
         beguile_hook_function(BEGUILE_HOOK_AFTER_STEP);                        \
 
-#define BEGUILE_ASSERT_OK BEGUILE_PRINT(" " BEGUILE_STYLE_SUCCESS(BEGUILE_OK))
-#define BEGUILE_ASSERT_FAIL (BEGUILE_PRINT(" " BEGUILE_STYLE_FAILURE(BEGUILE_FAIL)), beguile_scenario_has_failed = 1)
+#define BEGUILE_ASSERT_OK BEGUILE_PRINT(" " BEGUILE_STYLE_SUCCESS(BEGUILE_MSG_OK))
+#define BEGUILE_ASSERT_FAIL (BEGUILE_PRINT(" " BEGUILE_STYLE_FAILURE(BEGUILE_MSG_FAIL)), \
+    beguile_scenario_has_failed = 1,                                                 \
+    BEGUILE_MESSAGE_PARENT("+"))
 
 #define BEGUILE_ASSERT_SHOULD_BE_EQUAL_TO(x)              == x    ? BEGUILE_ASSERT_OK : BEGUILE_ASSERT_FAIL
 #define BEGUILE_ASSERT_SHOULD_NOT_BE_EQUAL_TO(x)          != x    ? BEGUILE_ASSERT_OK : BEGUILE_ASSERT_FAIL
@@ -272,12 +307,17 @@ beguile_hook beguile_hook_function = NULL;
 #define should_be_null(x)                       BEGUILE_ASSERT_SHOULD_NOT_BE_EQUAL_TO(x)
 #define should_not_be_null(x)                   BEGUILE_ASSERT_SHOULD_NOT_BE_EQUAL_TO(x)
 
-#define BEGUILE_OK                              "OK"
-#define BEGUILE_FAIL                            "FAIL"
+#define BEGUILE_MSG_OK                          "OK"
+#define BEGUILE_MSG_FAIL                        "FAIL"
 
-#define BEGUILE_SUMMARY_FEATURES                "%d features"
-#define BEGUILE_SUMMARY_SCENARIOS               "%d scenarios"
-#define BEGUILE_SUMMARY_FAILED                  "%d failed"
+#define BEGUILE_MSG_SUMMARY_FEATURES            "%d features"
+#define BEGUILE_MSG_SUMMARY_SCENARIOS           "%d scenarios"
+#define BEGUILE_MSG_SUMMARY_STEPS               "%d steps"
+#define BEGUILE_MSG_SUMMARY_ALL_PASSED          "all passed"
+#define BEGUILE_MSG_SUMMARY_FAILED              "%d failed"
+
+#define BEGUILE_MSG_COULD_NOT_PIPE              "Couldn't create scenario pipe"
+#define BEGUILE_MSG_COULD_NOT_FORK              "Couldn't fork scenario subprocess"
 
 #endif
 
