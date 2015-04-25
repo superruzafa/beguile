@@ -12,6 +12,17 @@ Stack *stack_new()
     return NULL;
 }
 
+Stack *stack_free(Stack *stack)
+{
+    Stack *node = stack;
+    while (stack != NULL) {
+        node = stack;
+        stack = stack->next;
+        free(node);
+    }
+    return stack;
+}
+
 Stack *stack_push(Stack *stack, StackElement element)
 {
     Stack *node = (Stack *)malloc(sizeof(Stack));

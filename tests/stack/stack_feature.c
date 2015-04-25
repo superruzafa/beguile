@@ -1,7 +1,17 @@
 #include <beguile.h>
 #include "stack_context.c"
 
+void hook(hook_type) {
+    switch (hook_type) {
+        case BEGUILE_HOOK_AFTER_SCENARIO:
+            stack = stack_free(stack);
+            break;
+    }
+}
+
 FeatureRunner
+
+BEGUILE_SET_HOOK(hook);
 
 Feature ("An stack")
     As_a ("C programmer")

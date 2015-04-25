@@ -1,3 +1,21 @@
+typedef enum {
+    BEGUILE_HOOK_BEFORE_FEATURE,
+    BEGUILE_HOOK_AFTER_FEATURE,
+    BEGUILE_HOOK_BEFORE_BACKGROUND,
+    BEGUILE_HOOK_AFTER_BACKGROUND,
+    BEGUILE_HOOK_BEFORE_SCENARIO,
+    BEGUILE_HOOK_AFTER_SCENARIO,
+    BEGUILE_HOOK_BEFORE_STEP,
+    BEGUILE_HOOK_AFTER_STEP,
+}
+BeguileHookType;
+
+typedef void (* beguile_hook)(BeguileHookType type);
+beguile_hook beguile_hook_function = NULL;
+
+#define BEGUILE_SET_HOOK(function)                                             \
+    beguile_hook_function = function;
+
 #define FeatureRunnerHeader \
     unsigned int beguile_stats_total_feature = 0;                              \
     unsigned int beguile_stats_failed_feature = 0;                             \
@@ -27,6 +45,8 @@
 
 #define BEGUILE_FEATURE(feature_keyword, feature_name)                         \
     {                                                                          \
+        if (beguile_hook_function != NULL)                                     \
+            beguile_hook_function(BEGUILE_HOOK_BEFORE_FEATURE);                \
         beguile_feature_has_failed = 0;                                        \
         beguile_background_printed = 0;                                        \
         beguile_background_section = NULL;                                     \
@@ -34,6 +54,8 @@
 
 #define BEGUILE_ENDFEATURE                                                     \
         if (beguile_feature_has_failed) ++beguile_stats_failed_feature;        \
+        if (beguile_hook_function != NULL)                                     \
+            beguile_hook_function(BEGUILE_HOOK_AFTER_FEATURE);                 \
     }
 
 #define BEGUILE_FEATURE_INTRO(intro_keyword, text)                             \
@@ -48,12 +70,16 @@
     BEGUILE_CONCAT(beguile_background_, line):;                                \
     beguile_background_section = && BEGUILE_CONCAT(beguile_background_, line); \
     if (beguile_background_enabled) {                                          \
+        if (beguile_hook_function != NULL)                                     \
+            beguile_hook_function(BEGUILE_HOOK_BEFORE_BACKGROUND);             \
         if (!beguile_background_printed) {                                     \
             BEGUILE_INDENT_1;                                                  \
             BEGUILE_PRINT(background_keyword ":\n");                           \
         }
 
 #define BEGUILE_ENDBACKGROUND                                                  \
+        if (beguile_hook_function != NULL)                                     \
+            beguile_hook_function(BEGUILE_HOOK_AFTER_BACKGROUND);              \
         longjmp(beguile_jmp_buf, 1);                                           \
     }                                                                          \
     beguile_background_enabled = 1;
@@ -75,6 +101,8 @@
                 && !setjmp(beguile_jmp_buf)) {                                 \
                 goto *beguile_background_section;                              \
             }                                                                  \
+            if (beguile_hook_function != NULL)                                 \
+                beguile_hook_function(BEGUILE_HOOK_BEFORE_SCENARIO);           \
             beguile_outside_background = 1;                                    \
             BEGUILE_INDENT_1;                                                  \
             BEGUILE_PRINT(scenario_keyword ": " scenario_name "\n");
@@ -87,15 +115,21 @@
             ++beguile_stats_failed_scenario;                                   \
             beguile_feature_has_failed = 1;                                    \
         }                                                                      \
+        if (beguile_hook_function != NULL)                                     \
+            beguile_hook_function(BEGUILE_HOOK_AFTER_SCENARIO);                \
     }
 
 #define BEGUILE_STEP(step_keyword, sentence, statement)                        \
+    if (beguile_hook_function != NULL)                                         \
+        beguile_hook_function(BEGUILE_HOOK_BEFORE_STEP);                       \
     if (!beguile_background_printed || beguile_outside_background) {           \
         BEGUILE_INDENT_2;                                                      \
         BEGUILE_PRINT(step_keyword " " sentence);                              \
     }                                                                          \
     statement;                                                                 \
     if (!beguile_background_printed || beguile_outside_background) BEGUILE_EOL;\
+    if (beguile_hook_function != NULL)                                         \
+        beguile_hook_function(BEGUILE_HOOK_AFTER_STEP);                        \
 
 #define BEGUILE_ASSERT_OK BEGUILE_PRINT_SUCCESS(" " BEGUILE_OK)
 #define BEGUILE_ASSERT_FAIL (BEGUILE_PRINT_FAILURE(" " BEGUILE_FAIL), beguile_scenario_has_failed = 1)

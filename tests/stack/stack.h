@@ -8,6 +8,7 @@ typedef struct _Stack Stack;
 typedef int StackElement;
 
 Stack *stack_new();
+Stack *stack_free(Stack *stack);
 Stack *stack_push(Stack *stack, StackElement element);
 StackElement stack_top(Stack *stack);
 Stack *stack_pop(Stack *stack);
