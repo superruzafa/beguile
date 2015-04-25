@@ -1,8 +1,5 @@
 #define BEGUILE_PRINT(...)  printf(__VA_ARGS__)
 
-#define BEGUILE_PRINT_FAILURE(...) BEGUILE_PRINT(__VA_ARGS__)
-#define BEGUILE_PRINT_SUCCESS(...) BEGUILE_PRINT(__VA_ARGS__)
-
 #define BEGUILE_EOL BEGUILE_PRINT("\n")
 
 #define BEGUILE_CONCAT(a, b) a ## b

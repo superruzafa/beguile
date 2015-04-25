@@ -2,9 +2,7 @@
 
 void beguild_signal_handler(int signal)
 {
-    BEGUILE_PRINT(" ");
-    BEGUILE_PRINT_FAILURE(BEGUILE_FAIL " %s", strsignal(signal));
-    BEGUILE_EOL;
+    BEGUILE_PRINT(" " BEGUILE_STYLE_FAILURE(BEGUILE_FAIL " %s") "\n", strsignal(signal));
     _exit(EXIT_FAILURE);
 }
 
@@ -16,7 +14,7 @@ void beguild_signal_handler(int signal)
         int beguild_signals[] = { BEGUILE_SIGNALS, 0 }, beguile_i;                                                    \
         for (beguile_i = 0; beguild_signals[beguile_i] != 0; ++beguile_i) {                                           \
             if (sigaction(beguild_signals[beguile_i], &beguile_sigaction, NULL) < 0) {                                \
-                BEGUILE_PRINT_FAILURE("Cannot set signal error handler for signal %d\n", beguild_signals[beguile_i]); \
+                BEGUILE_PRINT(BEGUILE_STYLE_FAILURE("Cannot set signal error handler for signal %d") "\n", beguild_signals[beguile_i]); \
                 exit(EXIT_FAILURE);                                                                                   \
             }                                                                                                         \
         }                                                                                                             \
