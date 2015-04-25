@@ -18,6 +18,7 @@
 #define BEGUILE_BRAND "Beguile, a BDD framework for C"
 
 #define BEGUILE_PRINT(...)  printf(__VA_ARGS__)
+#define BEGUILE_FLUSH fflush(stdout);
 
 #define BEGUILE_EOL BEGUILE_PRINT("\n")
 
@@ -84,6 +85,7 @@ beguile_hook beguile_hook_function = NULL;
     unsigned int beguile_stats_failed_feature = 0;                             \
     unsigned int beguile_stats_total_scenario = 0;                             \
     unsigned int beguile_stats_failed_scenario = 0;                            \
+    int beguile_intro_is_first = 1;                                            \
     int beguile_feature_has_failed;                                            \
     int beguile_scenario_has_failed;                                           \
     void *beguile_background_section;                                          \
@@ -113,7 +115,8 @@ beguile_hook beguile_hook_function = NULL;
         beguile_feature_has_failed = 0;                                        \
         beguile_background_printed = 0;                                        \
         beguile_background_section = NULL;                                     \
-        BEGUILE_PRINT(BEGUILE_STYLE_FEATURE(feature_keyword ":") " " feature_name "\n");
+        BEGUILE_PRINT(BEGUILE_STYLE_FEATURE(feature_keyword ":") " " feature_name); \
+        BEGUILE_FLUSH;
 
 #define BEGUILE_ENDFEATURE                                                     \
         if (beguile_feature_has_failed) ++beguile_stats_failed_feature;        \
@@ -122,6 +125,10 @@ beguile_hook beguile_hook_function = NULL;
     }
 
 #define BEGUILE_FEATURE_INTRO(intro_keyword, text)                             \
+    if (beguile_intro_is_first) {                                              \
+        BEGUILE_EOL;                                                           \
+        beguile_intro_is_first = 0;                                            \
+    }                                                                          \
     BEGUILE_INDENT_1;                                                          \
     BEGUILE_PRINT(intro_keyword " " text "\n");
 
@@ -136,6 +143,7 @@ beguile_hook beguile_hook_function = NULL;
         if (beguile_hook_function != NULL)                                     \
             beguile_hook_function(BEGUILE_HOOK_BEFORE_BACKGROUND);             \
         if (!beguile_background_printed) {                                     \
+            BEGUILE_EOL;                                                       \
             BEGUILE_INDENT_1;                                                  \
             BEGUILE_PRINT(BEGUILE_STYLE_BACKGROUND(background_keyword ":") "\n"); \
         }
@@ -167,6 +175,7 @@ beguile_hook beguile_hook_function = NULL;
             if (beguile_hook_function != NULL)                                 \
                 beguile_hook_function(BEGUILE_HOOK_BEFORE_SCENARIO);           \
             beguile_outside_background = 1;                                    \
+            BEGUILE_EOL;                                                       \
             BEGUILE_INDENT_1;                                                  \
             BEGUILE_PRINT(BEGUILE_STYLE_SCENARIO(scenario_keyword ":") " " scenario_name "\n");
 
@@ -190,7 +199,7 @@ beguile_hook beguile_hook_function = NULL;
         BEGUILE_PRINT(BEGUILE_STYLE_STEP(step_keyword) " " sentence);          \
     }                                                                          \
     statement;                                                                 \
-    if (!beguile_background_printed || beguile_outside_background) BEGUILE_EOL;\
+    if (!beguile_background_printed || beguile_outside_background) BEGUILE_EOL; \
     if (beguile_hook_function != NULL)                                         \
         beguile_hook_function(BEGUILE_HOOK_AFTER_STEP);                        \
 

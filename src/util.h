@@ -1,4 +1,5 @@
 #define BEGUILE_PRINT(...)  printf(__VA_ARGS__)
+#define BEGUILE_FLUSH fflush(stdout);
 
 #define BEGUILE_EOL BEGUILE_PRINT("\n")
 
