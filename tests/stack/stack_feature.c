@@ -12,7 +12,7 @@ Feature ("An stack")
         Given (an_empty_stack)
     EndBackground
 
-    Scenario ("Insert an element")
+    Scenario ("Push an element")
         When (I_push_the_element(42))
         Then (the_stack_size should_be(1))
         And (the_stack_top should_be(42))
@@ -24,7 +24,11 @@ Feature ("An stack")
         Then (the_stack_should_be_empty)
     EndScenario
 
-EndFeature
+    Scenario ("Pop the stack")
+        When (I_pop)
+        Then (the_stack_should_be_empty)
+    EndScenario
 
+EndFeature
 
 EndFeatureRunner

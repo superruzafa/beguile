@@ -27,6 +27,7 @@ StackElement stack_top(Stack *stack)
 
 Stack *stack_pop(Stack *stack)
 {
+    if (stack == NULL) return stack;
     Stack *node = stack;
     stack = stack->next;
     free(node);

@@ -4,11 +4,14 @@
     unsigned int beguile_stats_total_scenario = 0;                             \
     unsigned int beguile_stats_failed_scenario = 0;                            \
     int beguile_feature_has_failed;                                            \
+    int beguile_scenario_has_failed;                                           \
     void *beguile_background_section;                                          \
     int beguile_background_enabled;                                            \
     int beguile_background_printed;                                            \
     int beguile_outside_background;                                            \
     jmp_buf beguile_jmp_buf;                                                   \
+    pid_t beguile_pid;                                                         \
+    BEGUILE_REGISTER_SIGNAL_HANDLER
 
 #define FeatureRunnerFooter                                                    \
     return beguile_stats_failed_feature == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
@@ -57,17 +60,29 @@
 
 #define BEGUILE_SCENARIO(scenario_keyword, scenario_name)                      \
     {                                                                          \
-        int beguile_scenario_has_failed = 0;                                   \
-        if (beguile_background_section != NULL && !setjmp(beguile_jmp_buf)) {  \
-            goto *beguile_background_section;                                  \
-        }                                                                      \
-        beguile_background_printed = 1;                                        \
-        beguile_outside_background = 1;                                        \
-        BEGUILE_INDENT_1;                                                      \
-        BEGUILE_PRINT(scenario_keyword ": " scenario_name "\n");
+        beguile_scenario_has_failed = 0;                                       \
+        beguile_pid = fork();                                                  \
+        if (beguile_pid < 0) {                                                 \
+            beguile_scenario_has_failed = 1;                                   \
+            BEGUILE_PRINT_FAILURE("Couldn't fork process\n");                  \
+        } else if (beguile_pid > 0) {                                          \
+            int beguile_status;                                                \
+            waitpid(beguile_pid, &beguile_status, 0);                          \
+            beguile_background_printed = 1;                                    \
+            beguile_scenario_has_failed = beguile_status != EXIT_SUCCESS;      \
+        } else {                                                               \
+            if (beguile_background_section != NULL                             \
+                && !setjmp(beguile_jmp_buf)) {                                 \
+                goto *beguile_background_section;                              \
+            }                                                                  \
+            beguile_outside_background = 1;                                    \
+            BEGUILE_INDENT_1;                                                  \
+            BEGUILE_PRINT(scenario_keyword ": " scenario_name "\n");
 
 #define BEGUILE_ENDSCENARIO                                                    \
-        beguile_outside_background = 0;                                        \
+            beguile_outside_background = 0;                                    \
+            _exit(beguile_scenario_has_failed ? EXIT_FAILURE : EXIT_SUCCESS);  \
+        }                                                                      \
         if (beguile_scenario_has_failed) {                                     \
             ++beguile_stats_failed_scenario;                                   \
             beguile_feature_has_failed = 1;                                    \
@@ -82,8 +97,8 @@
     statement;                                                                 \
     if (!beguile_background_printed || beguile_outside_background) BEGUILE_EOL;\
 
-#define BEGUILE_ASSERT_OK BEGUILE_PRINT(" " BEGUILE_OK)
-#define BEGUILE_ASSERT_FAIL (BEGUILE_PRINT(" " BEGUILE_FAIL), beguile_scenario_has_failed = 1)
+#define BEGUILE_ASSERT_OK BEGUILE_PRINT_SUCCESS(" " BEGUILE_OK)
+#define BEGUILE_ASSERT_FAIL (BEGUILE_PRINT_FAILURE(" " BEGUILE_FAIL), beguile_scenario_has_failed = 1)
 
 #define BEGUILE_ASSERT_SHOULD_BE_EQUAL_TO(x)              == x    ? BEGUILE_ASSERT_OK : BEGUILE_ASSERT_FAIL
 #define BEGUILE_ASSERT_SHOULD_NOT_BE_EQUAL_TO(x)          != x    ? BEGUILE_ASSERT_OK : BEGUILE_ASSERT_FAIL
