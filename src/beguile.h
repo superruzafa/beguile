@@ -77,6 +77,20 @@ BeguileHookType;
 typedef void (* beguile_hook)(BeguileHookType type);
 beguile_hook beguile_hook_function = NULL;
 
+void beguile_pretty_print(char *string)
+{
+    char *str = string;
+    while (*str != '\0') {
+        if (*str == '_' || *str == '(' || *str == ')') {
+            while (*str != '\0' && (*str == '_' || *str == '(' || *str == ')')) ++str;
+            if (*str != '\0') BEGUILE_PRINT(" ");
+        } else {
+            BEGUILE_PRINT("%c", *str);
+            ++str;
+        }
+    }
+}
+
 #define BEGUILE_SET_HOOK(function)                                             \
     beguile_hook_function = function;
 
@@ -132,7 +146,7 @@ beguile_hook beguile_hook_function = NULL;
     }
 
 #define BEGUILE_FEATURE(feature_keyword, feature_name)                         \
-    {                                                                          \
+    do {                                                                       \
         if (beguile_hook_function != NULL)                                     \
             beguile_hook_function(BEGUILE_HOOK_BEFORE_FEATURE);                \
         ++beguile_stats_total_feature;                                         \
@@ -146,7 +160,7 @@ beguile_hook beguile_hook_function = NULL;
         if (beguile_feature_has_failed) ++beguile_stats_failed_feature;        \
         if (beguile_hook_function != NULL)                                     \
             beguile_hook_function(BEGUILE_HOOK_AFTER_FEATURE);                 \
-    }
+    } while(0);
 
 #define BEGUILE_FEATURE_INTRO(intro_keyword, text)                             \
     if (beguile_intro_is_first) {                                              \
@@ -249,7 +263,8 @@ beguile_hook beguile_hook_function = NULL;
     BEGUILE_MESSAGE_PARENT("s");                                               \
     if (!beguile_background_printed || beguile_outside_background) {           \
         BEGUILE_INDENT_2;                                                      \
-        BEGUILE_PRINT(BEGUILE_STYLE_STEP(step_keyword) " " sentence);          \
+        BEGUILE_PRINT(BEGUILE_STYLE_STEP(step_keyword) " ");                   \
+        beguile_pretty_print(sentence);                                        \
     }                                                                          \
     BEGUILE_MESSAGE_PARENT("+");                                               \
     statement;                                                                 \
@@ -277,12 +292,12 @@ beguile_hook beguile_hook_function = NULL;
 #define Feature(feature_name)                   BEGUILE_FEATURE("Feature", feature_name)
 #define EndFeature                              BEGUILE_ENDFEATURE
 
-#define As_a(role)                              BEGUILE_FEATURE_INTRO("As a", #role)
-#define As_an(role)                             BEGUILE_FEATURE_INTRO("As an", #role)
-#define I_want_to(feature)                      BEGUILE_FEATURE_INTRO("I want to", #feature)
-#define I_want(feature)                         BEGUILE_FEATURE_INTRO("I want", #feature)
-#define In_order_to(benefit)                    BEGUILE_FEATURE_INTRO("In order to", #benefit)
-#define So_that(benefit)                        BEGUILE_FEATURE_INTRO("So that", #benefit)
+#define As_a(role)                              BEGUILE_FEATURE_INTRO("As a", role)
+#define As_an(role)                             BEGUILE_FEATURE_INTRO("As an", role)
+#define I_want_to(feature)                      BEGUILE_FEATURE_INTRO("I want to", feature)
+#define I_want(feature)                         BEGUILE_FEATURE_INTRO("I want", feature)
+#define In_order_to(benefit)                    BEGUILE_FEATURE_INTRO("In order to", benefit)
+#define So_that(benefit)                        BEGUILE_FEATURE_INTRO("So that", benefit)
 
 #define Background                              BEGUILE_BACKGROUND("Background")
 #define EndBackground                           BEGUILE_ENDBACKGROUND

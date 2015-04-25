@@ -3,12 +3,12 @@
 #define Feature(feature_name)                   BEGUILE_FEATURE("Feature", feature_name)
 #define EndFeature                              BEGUILE_ENDFEATURE
 
-#define As_a(role)                              BEGUILE_FEATURE_INTRO("As a", #role)
-#define As_an(role)                             BEGUILE_FEATURE_INTRO("As an", #role)
-#define I_want_to(feature)                      BEGUILE_FEATURE_INTRO("I want to", #feature)
-#define I_want(feature)                         BEGUILE_FEATURE_INTRO("I want", #feature)
-#define In_order_to(benefit)                    BEGUILE_FEATURE_INTRO("In order to", #benefit)
-#define So_that(benefit)                        BEGUILE_FEATURE_INTRO("So that", #benefit)
+#define As_a(role)                              BEGUILE_FEATURE_INTRO("As a", role)
+#define As_an(role)                             BEGUILE_FEATURE_INTRO("As an", role)
+#define I_want_to(feature)                      BEGUILE_FEATURE_INTRO("I want to", feature)
+#define I_want(feature)                         BEGUILE_FEATURE_INTRO("I want", feature)
+#define In_order_to(benefit)                    BEGUILE_FEATURE_INTRO("In order to", benefit)
+#define So_that(benefit)                        BEGUILE_FEATURE_INTRO("So that", benefit)
 
 #define Background                              BEGUILE_BACKGROUND("Background")
 #define EndBackground                           BEGUILE_ENDBACKGROUND

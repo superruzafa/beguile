@@ -13,6 +13,20 @@ BeguileHookType;
 typedef void (* beguile_hook)(BeguileHookType type);
 beguile_hook beguile_hook_function = NULL;
 
+void beguile_pretty_print(char *string)
+{
+    char *str = string;
+    while (*str != '\0') {
+        if (*str == '_' || *str == '(' || *str == ')') {
+            while (*str != '\0' && (*str == '_' || *str == '(' || *str == ')')) ++str;
+            if (*str != '\0') BEGUILE_PRINT(" ");
+        } else {
+            BEGUILE_PRINT("%c", *str);
+            ++str;
+        }
+    }
+}
+
 #define BEGUILE_SET_HOOK(function)                                             \
     beguile_hook_function = function;
 
@@ -39,7 +53,7 @@ beguile_hook beguile_hook_function = NULL;
 #define BEGUILE_SUMMARY_COMPONENT(component, total, failed)                    \
     BEGUILE_PRINT(component " (", total);                                      \
     if (failed == 0) {                                                         \
-        BEGUILE_PRINT(BEGUILE_STYLE_SUCCESS(BEGUILE_MSG_SUMMARY_ALL_PASSED)); \
+        BEGUILE_PRINT(BEGUILE_STYLE_SUCCESS(BEGUILE_MSG_SUMMARY_ALL_PASSED));  \
     } else {                                                                   \
         BEGUILE_PRINT(BEGUILE_STYLE_FAILURE(BEGUILE_MSG_SUMMARY_FAILED), failed); \
     }                                                                          \
@@ -68,7 +82,7 @@ beguile_hook beguile_hook_function = NULL;
     }
 
 #define BEGUILE_FEATURE(feature_keyword, feature_name)                         \
-    {                                                                          \
+    do {                                                                       \
         if (beguile_hook_function != NULL)                                     \
             beguile_hook_function(BEGUILE_HOOK_BEFORE_FEATURE);                \
         ++beguile_stats_total_feature;                                         \
@@ -82,7 +96,7 @@ beguile_hook beguile_hook_function = NULL;
         if (beguile_feature_has_failed) ++beguile_stats_failed_feature;        \
         if (beguile_hook_function != NULL)                                     \
             beguile_hook_function(BEGUILE_HOOK_AFTER_FEATURE);                 \
-    }
+    } while(0);
 
 #define BEGUILE_FEATURE_INTRO(intro_keyword, text)                             \
     if (beguile_intro_is_first) {                                              \
@@ -185,7 +199,8 @@ beguile_hook beguile_hook_function = NULL;
     BEGUILE_MESSAGE_PARENT("s");                                               \
     if (!beguile_background_printed || beguile_outside_background) {           \
         BEGUILE_INDENT_2;                                                      \
-        BEGUILE_PRINT(BEGUILE_STYLE_STEP(step_keyword) " " sentence);          \
+        BEGUILE_PRINT(BEGUILE_STYLE_STEP(step_keyword) " ");                   \
+        beguile_pretty_print(sentence);                                        \
     }                                                                          \
     BEGUILE_MESSAGE_PARENT("+");                                               \
     statement;                                                                 \
@@ -196,7 +211,7 @@ beguile_hook beguile_hook_function = NULL;
 
 #define BEGUILE_ASSERT_OK BEGUILE_PRINT(" " BEGUILE_STYLE_SUCCESS(BEGUILE_MSG_OK))
 #define BEGUILE_ASSERT_FAIL (BEGUILE_PRINT(" " BEGUILE_STYLE_FAILURE(BEGUILE_MSG_FAIL)), \
-    beguile_scenario_has_failed = 1,                                                 \
+    beguile_scenario_has_failed = 1,                                           \
     BEGUILE_MESSAGE_PARENT("+"))
 
 #define BEGUILE_ASSERT_SHOULD_BE_EQUAL_TO(x)              == x    ? BEGUILE_ASSERT_OK : BEGUILE_ASSERT_FAIL
