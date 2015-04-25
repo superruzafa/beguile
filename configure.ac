@@ -36,5 +36,5 @@ MODULES="$MODULES $MODULE_SIGNALS"
 MODULES="$MODULES footer.h"
 AC_SUBST([MODULES])
 
-AC_CONFIG_FILES([Makefile src/Makefile src/package.h tests/Makefile tests/stack/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile src/package.h tests/Makefile tests/stack/Makefile features/Makefile])
 AC_OUTPUT

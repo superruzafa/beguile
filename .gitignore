@@ -6,3 +6,5 @@
 !/src/*.h.in
 !/tests
 !/tests/*.c
+!/features
+!/features/*.c
