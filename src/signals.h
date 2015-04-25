@@ -2,7 +2,7 @@
 
 void beguild_signal_handler(int signal)
 {
-    BEGUILE_PRINT(" " BEGUILE_STYLE_FAILURE(BEGUILE_FAIL " %s") "\n", strsignal(signal));
+    BEGUILE_PRINT(" " BEGUILE_STYLE_FAILURE("%s") "\n", strsignal(signal));
     _exit(EXIT_FAILURE);
 }
 

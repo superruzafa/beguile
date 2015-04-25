@@ -96,7 +96,23 @@ beguile_hook beguile_hook_function = NULL;
     pid_t beguile_pid;                                                         \
     BEGUILE_REGISTER_SIGNAL_HANDLER
 
+#define BEGUILE_SUMMARY_COMPONENT(component, total, failed)                    \
+    BEGUILE_PRINT(component " ", total);                                       \
+    if (failed == 0) {                                                         \
+        BEGUILE_PRINT("(" BEGUILE_STYLE_SUCCESS(BEGUILE_SUMMARY_FAILED) ")\n", failed);   \
+    } else {                                                                   \
+        BEGUILE_PRINT("(" BEGUILE_STYLE_FAILURE(BEGUILE_SUMMARY_FAILED) ")\n", failed);   \
+    }
+
+#define FeatureRunnerSummary                                                   \
+    BEGUILE_EOL;                                                               \
+    BEGUILE_SUMMARY_COMPONENT(BEGUILE_SUMMARY_FEATURES,                        \
+        beguile_stats_total_feature, beguile_stats_failed_feature);            \
+    BEGUILE_SUMMARY_COMPONENT(BEGUILE_SUMMARY_SCENARIOS,                       \
+        beguile_stats_total_scenario, beguile_stats_failed_scenario);
+
 #define FeatureRunnerFooter                                                    \
+    FeatureRunnerSummary                                                       \
     return beguile_stats_failed_feature == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 
 #define FeatureRunner                                                          \
@@ -112,6 +128,7 @@ beguile_hook beguile_hook_function = NULL;
     {                                                                          \
         if (beguile_hook_function != NULL)                                     \
             beguile_hook_function(BEGUILE_HOOK_BEFORE_FEATURE);                \
+        ++beguile_stats_total_feature;                                         \
         beguile_feature_has_failed = 0;                                        \
         beguile_background_printed = 0;                                        \
         beguile_background_section = NULL;                                     \
@@ -157,11 +174,16 @@ beguile_hook beguile_hook_function = NULL;
 
 #define BEGUILE_SCENARIO(scenario_keyword, scenario_name)                      \
     {                                                                          \
+        ++beguile_stats_total_scenario;                                        \
         beguile_scenario_has_failed = 0;                                       \
         beguile_pid = fork();                                                  \
         if (beguile_pid < 0) {                                                 \
             beguile_scenario_has_failed = 1;                                   \
-            BEGUILE_PRINT(BEGUILE_STYLE_FAILURE("Couldn't fork process") "\n"); \
+            BEGUILE_EOL;                                                       \
+            BEGUILE_INDENT_1;                                                  \
+            BEGUILE_PRINT(BEGUILE_STYLE_SCENARIO(scenario_keyword ":") " "     \
+                scenario_name " "                                              \
+                BEGUILE_STYLE_FAILURE("Couldn't fork process") "\n");          \
         } else if (beguile_pid > 0) {                                          \
             int beguile_status;                                                \
             waitpid(beguile_pid, &beguile_status, 0);                          \
@@ -253,13 +275,17 @@ beguile_hook beguile_hook_function = NULL;
 #define BEGUILE_OK                              "OK"
 #define BEGUILE_FAIL                            "FAIL"
 
+#define BEGUILE_SUMMARY_FEATURES                "%d features"
+#define BEGUILE_SUMMARY_SCENARIOS               "%d scenarios"
+#define BEGUILE_SUMMARY_FAILED                  "%d failed"
+
 #endif
 
 #define BEGUILE_SIGNALS SIGABRT, SIGFPE, SIGSEGV
 
 void beguild_signal_handler(int signal)
 {
-    BEGUILE_PRINT(" " BEGUILE_STYLE_FAILURE(BEGUILE_FAIL " %s") "\n", strsignal(signal));
+    BEGUILE_PRINT(" " BEGUILE_STYLE_FAILURE("%s") "\n", strsignal(signal));
     _exit(EXIT_FAILURE);
 }
 

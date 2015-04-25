@@ -36,5 +36,9 @@
 #define BEGUILE_OK                              "OK"
 #define BEGUILE_FAIL                            "FAIL"
 
+#define BEGUILE_SUMMARY_FEATURES                "%d features"
+#define BEGUILE_SUMMARY_SCENARIOS               "%d scenarios"
+#define BEGUILE_SUMMARY_FAILED                  "%d failed"
+
 #endif
 
