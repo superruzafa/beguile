@@ -2,7 +2,9 @@
 
 #define BEGUILE_EOL BEGUILE_PRINT("\n")
 
-#define BEGUILE_INDENT_1    BEGUILE_PRINT("    ")
-#define BEGUILE_INDENT_2    BEGUILE_PRINT("        ")
-#define BEGUILE_INDENT_3    BEGUILE_PRINT("            ")
+#define BEGUILE_CONCAT(a, b) a ## b
+
+#define BEGUILE_INDENT_1    BEGUILE_PRINT("  ")
+#define BEGUILE_INDENT_2    BEGUILE_PRINT("    ")
+#define BEGUILE_INDENT_3    BEGUILE_PRINT("      ")
 
