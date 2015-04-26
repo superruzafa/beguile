@@ -3,4 +3,4 @@ before_install:
     - sudo apt-get install -y autoconf automake
 language: c
 compiler: gcc
-script: ./configure && make && make check
+script: aclocal && autoconf && automake --add-missing --copy && ./configure && make && make check
