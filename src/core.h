@@ -44,7 +44,7 @@ void beguile_pretty_print(char *string)
 
 #define FeatureRunnerHeader \
     BeguileStats beguile_stats = {0, 0, 0, 0, 0, 0, 0};                        \
-    int beguile_intro_is_first = 1;                                            \
+    int beguile_need_eol = 0;                                                  \
     int beguile_feature_has_failed;                                            \
     int beguile_scenario_has_failed;                                           \
     int beguile_written_bytes;                                                 \
@@ -95,6 +95,11 @@ void beguile_pretty_print(char *string)
         beguile_feature_has_failed = 0;                                        \
         beguile_background_printed = 0;                                        \
         beguile_background_section = NULL;                                     \
+        if (beguile_need_eol) {                                                \
+            BEGUILE_EOL;                                                       \
+            beguile_need_eol = 0;                                              \
+        }                                                                      \
+        beguile_need_eol = 1;                                                  \
         BEGUILE_PRINT(BEGUILE_STYLE_FEATURE(feature_keyword ":") " " feature_name); \
         BEGUILE_FLUSH;
 
@@ -104,9 +109,9 @@ void beguile_pretty_print(char *string)
     } while(0);
 
 #define BEGUILE_FEATURE_INTRO(intro_keyword, text)                             \
-    if (beguile_intro_is_first) {                                              \
+    if (beguile_need_eol) {                                                    \
         BEGUILE_EOL;                                                           \
-        beguile_intro_is_first = 0;                                            \
+        beguile_need_eol = 0;                                                  \
     }                                                                          \
     BEGUILE_INDENT_1;                                                          \
     BEGUILE_PRINT(intro_keyword " " text "\n");
@@ -161,7 +166,10 @@ void beguile_pretty_print(char *string)
             close(beguile_pipe[1]);                                            \
             while (read(beguile_pipe[0], &beguile_message, sizeof(char))) {    \
                 switch (beguile_message) {                                     \
-                    case 'T': ++beguile_stats.step_total; break;               \
+                    case 'T':                                                  \
+                        ++beguile_stats.step_total;                            \
+                        beguile_need_eol = 1;                                  \
+                        break;                                                 \
                     case 'G': ++beguile_stats.signal_total; break;             \
                     case 'g': --beguile_stats.signal_total; break;             \
                     case 'F': ++beguile_stats.step_failed; break;              \

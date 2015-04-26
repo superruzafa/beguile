@@ -8,3 +8,6 @@
 !/tests/*.c
 !/features
 !/features/*.c
+!/examples
+!/examples/**/
+!/examples/**/**/*.[ch]

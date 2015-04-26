@@ -1,1 +1,6 @@
-SUBDIRS = src tests features
+SUBDIRS = src tests features examples
+
+examples:
+	$(MAKE) -C examples $@
+
+.PHONY: examples

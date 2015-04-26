@@ -9,6 +9,7 @@ AC_CONFIG_MACRO_DIR([m4])
 
 # Checks for programs.
 AC_PROG_CC
+AC_PROG_RANLIB
 
 # Checks for libraries.
 
@@ -36,5 +37,14 @@ MODULES="$MODULES $MODULE_SIGNALS"
 MODULES="$MODULES footer.h"
 AC_SUBST([MODULES])
 
-AC_CONFIG_FILES([Makefile src/Makefile src/package.h tests/Makefile tests/stack/Makefile features/Makefile])
+AC_CONFIG_FILES([
+    Makefile
+    src/Makefile
+    src/package.h
+    tests/Makefile
+    tests/stack/Makefile
+    features/Makefile
+    examples/Makefile
+    examples/stack/Makefile
+])
 AC_OUTPUT
