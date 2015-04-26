@@ -9,6 +9,7 @@ AC_CONFIG_MACRO_DIR([m4])
 
 # Checks for programs.
 AC_PROG_CC
+AC_PROG_RANLIB
 
 # Checks for libraries.
 
@@ -20,11 +21,28 @@ AC_PROG_CC
 
 # Beguile modules
 MODULE_PACKAGE=package.h
+MODULE_UTIL=util.h
+MODULE_CORE=core.h
+MODULE_LANG_EN=lang_en.h
+MODULE_SIGNALS=signals.h
+MODULE_STYLE=style.h
 
 MODULES="$MODULES header.h"
 MODULES="$MODULES $MODULE_PACKAGE"
+MODULES="$MODULES $MODULE_UTIL"
+MODULES="$MODULES $MODULE_STYLE"
+MODULES="$MODULES $MODULE_CORE"
+MODULES="$MODULES $MODULE_LANG_EN"
+MODULES="$MODULES $MODULE_SIGNALS"
 MODULES="$MODULES footer.h"
 AC_SUBST([MODULES])
 
-AC_CONFIG_FILES([Makefile src/Makefile src/package.h tests/Makefile])
+AC_CONFIG_FILES([
+    Makefile
+    src/Makefile
+    src/package.h
+    features/Makefile
+    examples/Makefile
+    examples/stack/Makefile
+])
 AC_OUTPUT
