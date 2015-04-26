@@ -26,8 +26,8 @@ void beguile_pretty_print(char *string)
 {
     char *str = string;
     while (*str != '\0') {
-        if (*str == '_' || *str == '(' || *str == ')') {
-            while (*str != '\0' && (*str == '_' || *str == '(' || *str == ')')) ++str;
+        if (*str == ' ' || *str == '_' || *str == '(' || *str == ')') {
+            while (*str != '\0' && (*str == ' ' || *str == '_' || *str == '(' || *str == ')')) ++str;
             if (*str != '\0') BEGUILE_PRINT(" ");
         } else {
             BEGUILE_PRINT("%c", *str);
