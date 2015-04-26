@@ -1,3 +1,6 @@
+before_install:
+    - sudo apt-get update -qq
+    - sudo apt-get install -y autoconf automake
 language: c
 compiler: gcc
 script: ./configure && make && make check
