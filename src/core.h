@@ -28,16 +28,16 @@ typedef struct {
     int outside_background;
 } BeguileFlags;
 
-typedef struct {
-    int      written_bytes;
-    void    *background_section;
-    jmp_buf  jmp_buf;
-    pid_t    pid;
-    int      pipe[2];
-} BeguileVars;
+typedef void (* BeguileHook)(BeguileHookType type);
 
-typedef void (* beguile_hook)(BeguileHookType type);
-beguile_hook beguile_hook_function = NULL;
+typedef struct {
+    int            written_bytes;
+    void          *background_section;
+    jmp_buf        jmp_buf;
+    pid_t          pid;
+    int            pipe[2];
+    BeguileHook    hook;
+} BeguileVars;
 
 void beguile_pretty_print(char *string)
 {
@@ -53,16 +53,17 @@ void beguile_pretty_print(char *string)
     }
 }
 
-#define BEGUILE_SET_HOOK(function)                                             \
-    beguile_hook_function = function;
+#define beguile_set_hook(function)                                             \
+    beguile_vars.hook = function
 
 #define BEGUILE_TRIGGER_HOOK(type)                                             \
-    if (beguile_hook_function != NULL) beguile_hook_function(type)
+    if (beguile_vars.hook != NULL) beguile_vars.hook(type)
 
 #define FeatureRunnerHeader \
     BeguileStats beguile_stats = {0, 0, 0, 0, 0, 0, 0};                        \
     BeguileFlags beguile_flags = {0, 0, 0, 0, 0, 0};                           \
     BeguileVars beguile_vars;                                                  \
+    beguile_set_hook(NULL);                                                    \
     BEGUILE_REGISTER_SIGNAL_HANDLER
 
 #define BEGUILE_SUMMARY_COMPONENT(component, total, failed)                    \

@@ -40,64 +40,64 @@ void real_the_hook_sequence_should_be(int anchor, ...)
 void i_run_no_feature()
 {
     hook_sequence.current = 0;
-    BEGUILE_SET_HOOK(hook_handler)
     FeatureRunnerHeader
-    BEGUILE_SET_HOOK(NULL);
+    beguile_set_hook(hook_handler);
+    beguile_set_hook(NULL);
 }
 
 void i_run_a_feature_with_background_but_not_scenarios()
 {
     hook_sequence.current = 0;
-    BEGUILE_SET_HOOK(hook_handler)
     FeatureRunnerHeader
+    beguile_set_hook(hook_handler);
         Background
         EndBackground
     Feature ("Feature with no scenarios")
     EndFeature
-    BEGUILE_SET_HOOK(NULL);
+    beguile_set_hook(NULL);
 }
 
 void i_run_a_feature_with_no_scenarios()
 {
     hook_sequence.current = 0;
-    BEGUILE_SET_HOOK(hook_handler)
     FeatureRunnerHeader
+    beguile_set_hook(hook_handler);
     Feature ("Feature with no scenarios")
     EndFeature
-    BEGUILE_SET_HOOK(NULL);
+    beguile_set_hook(NULL);
 }
 
 void i_run_a_feature_with_one_scenario()
 {
     hook_sequence.current = 0;
-    BEGUILE_SET_HOOK(hook_handler)
     FeatureRunnerHeader
+    beguile_set_hook(hook_handler);
     Feature ("Feature with no scenarios")
         Scenario ("Unique scenario")
         EndScenario
     EndFeature
-    BEGUILE_SET_HOOK(NULL);
+    beguile_set_hook(NULL);
 }
 
 void i_run_a_feature_with_two_scenarios()
 {
     hook_sequence.current = 0;
-    BEGUILE_SET_HOOK(hook_handler)
     FeatureRunnerHeader
+    beguile_set_hook(hook_handler);
     Feature ("Feature with no scenarios")
         Scenario ("First scenario")
         EndScenario
         Scenario ("Second scenario")
         EndScenario
     EndFeature
-    BEGUILE_SET_HOOK(NULL);
+    beguile_set_hook(NULL);
 }
 
 void i_run_a_feature_with_background_and_two_scenarios()
 {
     hook_sequence.current = 0;
-    BEGUILE_SET_HOOK(hook_handler)
     FeatureRunnerHeader
+    beguile_set_hook(hook_handler);
     Feature ("Feature with background and two scenarios")
         Background
         EndBackground
@@ -106,28 +106,28 @@ void i_run_a_feature_with_background_and_two_scenarios()
         Scenario ("Second scenario")
         EndScenario
     EndFeature
-    BEGUILE_SET_HOOK(NULL);
+    beguile_set_hook(NULL);
 }
 
 void i_run_a_feature_with_a_background_which_has_steps()
 {
     hook_sequence.current = 0;
-    BEGUILE_SET_HOOK(hook_handler)
     FeatureRunnerHeader
+    beguile_set_hook(hook_handler);
     Feature ("Feature with a background which has steps")
         Background
             Given()
             When()
         EndBackground
     EndFeature
-    BEGUILE_SET_HOOK(NULL);
+    beguile_set_hook(NULL);
 }
 
 void i_run_a_feature_with_background_scenarios_and_steps()
 {
     hook_sequence.current = 0;
-    BEGUILE_SET_HOOK(hook_handler)
     FeatureRunnerHeader
+    beguile_set_hook(hook_handler);
     Feature ("Feature with background, scenarios and steps")
         Background
             Given()
@@ -139,7 +139,7 @@ void i_run_a_feature_with_background_scenarios_and_steps()
             Then()
         EndScenario
     EndFeature
-    BEGUILE_SET_HOOK(NULL);
+    beguile_set_hook(NULL);
 }
 
 FeatureRunner
