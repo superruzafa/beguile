@@ -1,4 +1,4 @@
-AM_CPPFLAGS = -I$(top_srcdir)/src
+AM_CPPFLAGS = -I$(top_builddir)/src
 
 EXTRA_LIBRARIES = libstack.a
 libstack_a_SOURCES = stack.c
@@ -11,7 +11,7 @@ stack_feature_LDADD = libstack.a
 examples: stack_feature
 
 $(top_srcdir)/src/beguile.h: .FORCE
-	$(MAKE) -C $(top_srcdir)/src
+	$(MAKE) -C $(top_builddir)/src
 
 CLEANFILES = libstack.a stack_feature
 
