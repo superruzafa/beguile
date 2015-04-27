@@ -3370,7 +3370,7 @@ MODULES="$MODULES $MODULE_SIGNALS"
 MODULES="$MODULES footer.h"
 
 
-ac_config_files="$ac_config_files Makefile src/Makefile src/package.h features/Makefile examples/Makefile examples/stack/Makefile"
+ac_config_files="$ac_config_files Makefile src/Makefile src/package.h tests/Makefile features/Makefile examples/Makefile examples/stack/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -4121,6 +4121,7 @@ do
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
     "src/package.h") CONFIG_FILES="$CONFIG_FILES src/package.h" ;;
+    "tests/Makefile") CONFIG_FILES="$CONFIG_FILES tests/Makefile" ;;
     "features/Makefile") CONFIG_FILES="$CONFIG_FILES features/Makefile" ;;
     "examples/Makefile") CONFIG_FILES="$CONFIG_FILES examples/Makefile" ;;
     "examples/stack/Makefile") CONFIG_FILES="$CONFIG_FILES examples/stack/Makefile" ;;

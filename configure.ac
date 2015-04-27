@@ -41,6 +41,7 @@ AC_CONFIG_FILES([
     Makefile
     src/Makefile
     src/package.h
+    tests/Makefile
     features/Makefile
     examples/Makefile
     examples/stack/Makefile
