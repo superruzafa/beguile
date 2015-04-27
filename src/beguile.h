@@ -17,8 +17,24 @@
 #define BEGUILE_EMAIL  "superruzafa@gmail.com"
 #define BEGUILE_BRAND "Beguile, a BDD framework for C"
 
-#define BEGUILE_PRINT(...)  printf(__VA_ARGS__)
-#define BEGUILE_FLUSH fflush(stdout);
+#define BEGUILE_PRINT(...) (beguile_global_vars.output ? printf(__VA_ARGS__) : 0)
+#define BEGUILE_FLUSH (beguile_global_vars.output ? fflush(stdout) : 0)
+
+#define BEGUILE_PRETTY_PRINT(string)                                                                            \
+    do {                                                                                                        \
+        char *str = string;                                                                                     \
+        while (*str != '\0') {                                                                                  \
+            if (*str == ' ' || *str == '_' || *str == '(' || *str == ')') {                                     \
+                while (*str != '\0' && (*str == ' ' || *str == '_' || *str == '(' || *str == ')')) ++str;       \
+                if (*str != '\0') BEGUILE_PRINT(" ");                                                           \
+            } else {                                                                                            \
+                BEGUILE_PRINT("%c", *str);                                                                      \
+                ++str;                                                                                          \
+            }                                                                                                   \
+        }                                                                                                       \
+    } while(0)
+
+#define beguile_set_output(level) beguile_global_vars.output = level
 
 #define BEGUILE_EOL BEGUILE_PRINT("\n")
 
@@ -95,40 +111,31 @@ typedef struct {
 typedef void (* BeguileHook)(BeguileHookType type);
 
 typedef struct {
+    int             output;
+    BeguileHook     hook;
+} BeguileGlobalVars;
+
+BeguileGlobalVars beguile_global_vars = {1, NULL};
+
+typedef struct {
     int            written_bytes;
     void          *background_section;
     jmp_buf        jmp_buf;
     pid_t          pid;
     int            pipe[2];
-    BeguileHook    hook;
-} BeguileVars;
-
-void beguile_pretty_print(char *string)
-{
-    char *str = string;
-    while (*str != '\0') {
-        if (*str == ' ' || *str == '_' || *str == '(' || *str == ')') {
-            while (*str != '\0' && (*str == ' ' || *str == '_' || *str == '(' || *str == ')')) ++str;
-            if (*str != '\0') BEGUILE_PRINT(" ");
-        } else {
-            BEGUILE_PRINT("%c", *str);
-            ++str;
-        }
-    }
-}
+} BeguileFeatureVars;
 
 #define beguile_set_hook(function)                                             \
-    beguile_vars.hook = function
+    beguile_global_vars.hook = function
 
 #define BEGUILE_TRIGGER_HOOK(type)                                             \
-    if (beguile_vars.hook != NULL) beguile_vars.hook(type)
+    if (beguile_global_vars.hook != NULL) beguile_global_vars.hook(type)
 
 #define FeatureRunnerHeader \
     BeguileStats beguile_stats = {0, 0, 0, 0, 0, 0, 0};                        \
     BeguileFlags beguile_flags = {0, 0, 0, 0, 0, 0};                           \
-    BeguileVars beguile_vars;                                                  \
-    beguile_set_hook(NULL);                                                    \
-    BEGUILE_REGISTER_SIGNAL_HANDLER
+    BeguileFeatureVars beguile_feature_vars;                                   \
+    BEGUILE_REGISTER_SIGNAL_HANDLER;
 
 #define BEGUILE_SUMMARY_COMPONENT(component, total, failed)                    \
     BEGUILE_PRINT(component " (", total);                                      \
@@ -167,7 +174,7 @@ void beguile_pretty_print(char *string)
         ++beguile_stats.feature_total;                                         \
         beguile_flags.feature_has_failed = 0;                                  \
         beguile_flags.background_printed = 0;                                  \
-        beguile_vars.background_section = NULL;                                \
+        beguile_feature_vars.background_section = NULL;                                \
         if (beguile_flags.need_eol) {                                          \
             BEGUILE_EOL;                                                       \
             beguile_flags.need_eol = 0;                                        \
@@ -190,7 +197,7 @@ void beguile_pretty_print(char *string)
     BEGUILE_PRINT(intro_keyword " " text "\n");
 
 #define BEGUILE_MESSAGE_PARENT(message)                                        \
-    beguile_vars.written_bytes = write(beguile_vars.pipe[1], message, sizeof(char))
+    beguile_feature_vars.written_bytes = write(beguile_feature_vars.pipe[1], message, sizeof(char))
 
 #define BEGUILE_BACKGROUND(background_keyword)                                 \
     BEGUILE_REAL_BACKGROUND(background_keyword, __LINE__)
@@ -198,7 +205,7 @@ void beguile_pretty_print(char *string)
 #define BEGUILE_REAL_BACKGROUND(background_keyword, line)                      \
     beguile_flags.background_enabled = 0;                                      \
     BEGUILE_CONCAT(beguile_background_, line):;                                \
-    beguile_vars.background_section = && BEGUILE_CONCAT(beguile_background_, line); \
+    beguile_feature_vars.background_section = && BEGUILE_CONCAT(beguile_background_, line); \
     if (beguile_flags.background_enabled) {                                    \
         BEGUILE_MESSAGE_PARENT("b");                                           \
         if (!beguile_flags.background_printed) {                               \
@@ -209,7 +216,7 @@ void beguile_pretty_print(char *string)
 
 #define BEGUILE_ENDBACKGROUND                                                  \
         BEGUILE_MESSAGE_PARENT("B");                                           \
-        longjmp(beguile_vars.jmp_buf, 1);                                      \
+        longjmp(beguile_feature_vars.jmp_buf, 1);                                      \
     }                                                                          \
     beguile_flags.background_enabled = 1;
 
@@ -217,7 +224,7 @@ void beguile_pretty_print(char *string)
     do {                                                                       \
         ++beguile_stats.scenario_total;                                        \
         beguile_flags.scenario_has_failed = 0;                                 \
-        if (pipe(beguile_vars.pipe) != 0) {                                    \
+        if (pipe(beguile_feature_vars.pipe) != 0) {                                    \
             beguile_flags.scenario_has_failed = 1;                             \
             BEGUILE_EOL;                                                       \
             BEGUILE_INDENT_1;                                                  \
@@ -226,18 +233,18 @@ void beguile_pretty_print(char *string)
                 BEGUILE_STYLE_FAILURE(BEGUILE_MSG_COULD_NOT_PIPE) "\n");       \
                 break;                                                         \
         };                                                                     \
-        beguile_vars.pid = fork();                                             \
-        if (beguile_vars.pid < 0) {                                            \
+        beguile_feature_vars.pid = fork();                                             \
+        if (beguile_feature_vars.pid < 0) {                                            \
             beguile_flags.scenario_has_failed = 1;                             \
             BEGUILE_EOL;                                                       \
             BEGUILE_INDENT_1;                                                  \
             BEGUILE_PRINT(BEGUILE_STYLE_SCENARIO(scenario_keyword ":") " "     \
                 scenario_name " "                                              \
                 BEGUILE_STYLE_FAILURE(BEGUILE_MSG_COULD_NOT_FORK) "\n");       \
-        } else if (beguile_vars.pid > 0) {                                     \
+        } else if (beguile_feature_vars.pid > 0) {                                     \
             char beguile_message;                                              \
-            close(beguile_vars.pipe[1]);                                       \
-            while (read(beguile_vars.pipe[0], &beguile_message, sizeof(char))) { \
+            close(beguile_feature_vars.pipe[1]);                                       \
+            while (read(beguile_feature_vars.pipe[0], &beguile_message, sizeof(char))) { \
                 switch (beguile_message) {                                     \
                     case 'T':                                                  \
                         ++beguile_stats.step_total;                            \
@@ -255,14 +262,14 @@ void beguile_pretty_print(char *string)
                 }                                                              \
             }                                                                  \
             int beguile_status;                                                \
-            waitpid(beguile_vars.pid, &beguile_status, 0);                     \
+            waitpid(beguile_feature_vars.pid, &beguile_status, 0);                     \
             beguile_flags.background_printed = 1;                              \
             beguile_flags.scenario_has_failed = beguile_status != EXIT_SUCCESS; \
         } else {                                                               \
-            close(beguile_vars.pipe[0]);                                       \
-            if (beguile_vars.background_section != NULL                        \
-                && !setjmp(beguile_vars.jmp_buf)) {                            \
-                goto *beguile_vars.background_section;                         \
+            close(beguile_feature_vars.pipe[0]);                                       \
+            if (beguile_feature_vars.background_section != NULL                        \
+                && !setjmp(beguile_feature_vars.jmp_buf)) {                            \
+                goto *beguile_feature_vars.background_section;                         \
             }                                                                  \
             BEGUILE_MESSAGE_PARENT("c");                                       \
             beguile_flags.outside_background = 1;                              \
@@ -288,7 +295,7 @@ void beguile_pretty_print(char *string)
     if (!beguile_flags.background_printed || beguile_flags.outside_background) { \
         BEGUILE_INDENT_2;                                                      \
         BEGUILE_PRINT(BEGUILE_STYLE_STEP(step_keyword) " ");                   \
-        beguile_pretty_print(sentence);                                        \
+        BEGUILE_PRETTY_PRINT(sentence);                                        \
         BEGUILE_FLUSH;                                                         \
     }                                                                          \
     BEGUILE_MESSAGE_PARENT("G");                                               \
@@ -364,7 +371,7 @@ void beguile_pretty_print(char *string)
 
 #define BEGUILE_SIGNALS SIGABRT, SIGFPE, SIGSEGV
 
-void beguild_signal_handler(int signal)
+void beguile_signal_handler(int signal)
 {
     BEGUILE_PRINT(" " BEGUILE_STYLE_FAILURE("%s") "\n", strsignal(signal));
     _exit(EXIT_FAILURE);
@@ -374,15 +381,13 @@ void beguild_signal_handler(int signal)
     do {                                                                                                              \
         struct sigaction beguile_sigaction;                                                                           \
         sigemptyset(&beguile_sigaction.sa_mask);                                                                      \
-        beguile_sigaction.sa_handler = beguild_signal_handler;                                                        \
-        int beguild_signals[] = { BEGUILE_SIGNALS, 0 }, beguile_i;                                                    \
-        for (beguile_i = 0; beguild_signals[beguile_i] != 0; ++beguile_i) {                                           \
-            if (sigaction(beguild_signals[beguile_i], &beguile_sigaction, NULL) < 0) {                                \
-                BEGUILE_PRINT(BEGUILE_STYLE_FAILURE("Cannot set signal error handler for signal %d") "\n", beguild_signals[beguile_i]); \
+        beguile_sigaction.sa_handler = beguile_signal_handler;                                                        \
+        int beguile_signals[] = { BEGUILE_SIGNALS, 0 }, beguile_i;                                                    \
+        for (beguile_i = 0; beguile_signals[beguile_i] != 0; ++beguile_i) {                                           \
+            if (sigaction(beguile_signals[beguile_i], &beguile_sigaction, NULL) < 0) {                                \
+                BEGUILE_PRINT(BEGUILE_STYLE_FAILURE("Cannot set signal error handler for signal %d") "\n", beguile_signals[beguile_i]); \
                 exit(EXIT_FAILURE);                                                                                   \
             }                                                                                                         \
         }                                                                                                             \
-    }                                                                                                                 \
-    while (0);
-
+    } while(0)
 #endif // __BEGUILE_H__

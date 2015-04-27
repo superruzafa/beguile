@@ -1,17 +1,21 @@
+#include <check.h>
 #include <beguile.h>
 #include <stdarg.h>
 
-struct HookLogger {
-    BeguileHookType hook_type[10];
+struct HookLog {
+    BeguileHookType type[10];
     int index;
-} hook_logger;
+} hook_log;
 
-void track_hook(BeguileHookType type)
+void setup()
 {
-    hook_logger.hook_type[hook_logger.index++] = type;
+    hook_log.index = 0;
 }
 
-#define assert_triggered_hooks(...) real_assert_triggered_hooks(1, ##__VA_ARGS__, -1)
+void hook_logger(BeguileHookType type)
+{
+    hook_log.type[hook_log.index++] = type;
+}
 
 int real_assert_triggered_hooks(int anchor, ...)
 {
@@ -20,68 +24,70 @@ int real_assert_triggered_hooks(int anchor, ...)
     va_list list;
     va_start(list, anchor);
     hook_type = va_arg(list, BeguileHookType);
-    while (hook_type != -1 && i < hook_logger.index) {
-        if (hook_logger.hook_type[i] != hook_type) return EXIT_FAILURE;
+    while (hook_type != -1 && i < hook_log.index) {
+        ck_assert_int_eq(hook_log.type[i], hook_type);
         ++i;
         hook_type = va_arg(list, BeguileHookType);
     }
     va_end(list);
-    return (i == hook_logger.index) ? EXIT_SUCCESS : EXIT_FAILURE;
+    ck_assert_int_eq(i, hook_log.index);
 }
 
-int test_empty()
-{
-    FeatureRunnerHeader
-    beguile_set_hook(track_hook);
-    return assert_triggered_hooks();
-}
+#define assert_triggered_hooks(...) real_assert_triggered_hooks(1, ##__VA_ARGS__, -1)
 
-int test_feature()
+START_TEST(test_empty_feature)
 {
     FeatureRunnerHeader
-    beguile_set_hook(track_hook);
+
+    assert_triggered_hooks();
+}
+END_TEST
+
+START_TEST(test_feature)
+{
+    FeatureRunnerHeader
     Feature("")
     EndFeature
 
-    return assert_triggered_hooks(BEGUILE_HOOK_BEFORE_FEATURE, BEGUILE_HOOK_AFTER_FEATURE);
+    assert_triggered_hooks(BEGUILE_HOOK_BEFORE_FEATURE, BEGUILE_HOOK_AFTER_FEATURE);
 }
+END_TEST
 
-int test_feature_scenario()
+START_TEST(test_feature_scenario)
 {
     FeatureRunnerHeader
-    beguile_set_hook(track_hook);
     Feature("")
         Scenario("")
         EndScenario
     EndFeature
 
-    return assert_triggered_hooks(
+    assert_triggered_hooks(
         BEGUILE_HOOK_BEFORE_FEATURE,
         BEGUILE_HOOK_BEFORE_SCENARIO,
         BEGUILE_HOOK_AFTER_SCENARIO,
         BEGUILE_HOOK_AFTER_FEATURE
     );
 }
+END_TEST
 
-int test_feature_background()
+START_TEST(test_feature_background)
 {
     FeatureRunnerHeader
-    beguile_set_hook(track_hook);
     Feature("")
         Background
         EndBackground
     EndFeature
 
-    return assert_triggered_hooks(
+    assert_triggered_hooks(
         BEGUILE_HOOK_BEFORE_FEATURE,
         BEGUILE_HOOK_AFTER_FEATURE
     );
-}
+}                                          
+END_TEST
 
-int test_feature_background_scenario()
+START_TEST(test_feature_background_scenario)
 {
     FeatureRunnerHeader
-    beguile_set_hook(track_hook);
     Feature("")
         Background
         EndBackground
@@ -89,7 +95,7 @@ int test_feature_background_scenario()
         EndScenario
     EndFeature
 
-    return assert_triggered_hooks(
+    assert_triggered_hooks(
         BEGUILE_HOOK_BEFORE_FEATURE,
         BEGUILE_HOOK_BEFORE_BACKGROUND,
         BEGUILE_HOOK_AFTER_BACKGROUND,
@@ -98,11 +104,11 @@ int test_feature_background_scenario()
         BEGUILE_HOOK_AFTER_FEATURE
     );
 }
+END_TEST
 
-int test_feature_background_scenario_scenario()
+START_TEST(test_feature_background_scenario_scenario)
 {
     FeatureRunnerHeader
-    beguile_set_hook(track_hook);
     Feature("")
         Background
         EndBackground
@@ -112,7 +118,7 @@ int test_feature_background_scenario_scenario()
         EndScenario
     EndFeature
 
-    return assert_triggered_hooks(
+    assert_triggered_hooks(
         BEGUILE_HOOK_BEFORE_FEATURE,
         BEGUILE_HOOK_BEFORE_BACKGROUND,
         BEGUILE_HOOK_AFTER_BACKGROUND,
@@ -125,25 +131,28 @@ int test_feature_background_scenario_scenario()
         BEGUILE_HOOK_AFTER_FEATURE
     );
 }
-
-#define FEATURE_SHOULD_SUCCEED(function) \
-    hook_logger.index = 0; \
-    printf("Running %s... ", #function); \
-    if (function() == EXIT_SUCCESS) { \
-        puts("OK"); \
-    } else { \
-        puts("FAIL"); \
-        result = EXIT_FAILURE; \
-    }
+END_TEST
 
 int main(int argc, char **argv)
 {
-    int result = EXIT_SUCCESS;
-    FEATURE_SHOULD_SUCCEED(test_empty);
-    FEATURE_SHOULD_SUCCEED(test_feature);
-    FEATURE_SHOULD_SUCCEED(test_feature_scenario);
-    FEATURE_SHOULD_SUCCEED(test_feature_background);
-    FEATURE_SHOULD_SUCCEED(test_feature_background_scenario);
-    FEATURE_SHOULD_SUCCEED(test_feature_background_scenario_scenario);
-    return result;
+    beguile_set_output(0);
+    beguile_set_hook(hook_logger);
+
+    Suite *suite = suite_create("Hooks");
+    TCase *tcase = tcase_create("Hooks");
+    suite_add_tcase(suite, tcase);
+
+    tcase_add_checked_fixture(tcase, setup, NULL);
+    tcase_add_test(tcase, test_empty_feature);
+    tcase_add_test(tcase, test_feature);
+    tcase_add_test(tcase, test_feature_scenario);
+    tcase_add_test(tcase, test_feature_background);
+    tcase_add_test(tcase, test_feature_background_scenario);
+    tcase_add_test(tcase, test_feature_background_scenario_scenario);
+
+    SRunner *runner = srunner_create(suite);
+    srunner_run_all(runner, CK_VERBOSE);
+    int test_failed = srunner_ntests_failed(runner);
+    srunner_free(runner);
+    return (test_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }

@@ -1,6 +1,6 @@
 before_install:
     - sudo apt-get update -qq
-    - sudo apt-get install -y autoconf automake
+    - sudo apt-get install -y check
 language: c
 compiler: gcc
-script: aclocal && autoconf && automake --add-missing --copy && ./configure && make && make check
+script: ./configure && make && make check

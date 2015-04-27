@@ -1,4 +1,4 @@
-SUBDIRS = src tests features examples
+SUBDIRS = src tests examples
 
 examples:
 	$(MAKE) -C examples $@
