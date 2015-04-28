@@ -17,8 +17,8 @@
 #define BEGUILE_EMAIL  "superruzafa@gmail.com"
 #define BEGUILE_BRAND "Beguile, a BDD framework for C"
 
-#define BEGUILE_PRINT(...) (beguile_global_vars.output ? printf(__VA_ARGS__) : 0)
-#define BEGUILE_FLUSH (beguile_global_vars.output ? fflush(stdout) : 0)
+#define BEGUILE_PRINT(...) (beguile_global_vars.output_enabled ? printf(__VA_ARGS__) : 0)
+#define BEGUILE_FLUSH (beguile_global_vars.output_enabled ? fflush(stdout) : 0)
 
 #define BEGUILE_PRETTY_PRINT(string)                                                                            \
     do {                                                                                                        \
@@ -34,7 +34,8 @@
         }                                                                                                       \
     } while(0)
 
-#define beguile_set_output(level) beguile_global_vars.output = level
+#define beguile_enable_output() beguile_global_vars.output_enabled = 1
+#define beguile_disable_output() beguile_global_vars.output_enabled = 0
 
 #define BEGUILE_EOL BEGUILE_PRINT("\n")
 
@@ -111,11 +112,12 @@ typedef struct {
 typedef void (* BeguileHook)(BeguileHookType type);
 
 typedef struct {
-    int             output;
+    int             output_enabled;
+    int             fork_enabled;
     BeguileHook     hook;
 } BeguileGlobalVars;
 
-BeguileGlobalVars beguile_global_vars = {1, NULL};
+BeguileGlobalVars beguile_global_vars = {1, 1, NULL};
 
 typedef struct {
     int            written_bytes;
@@ -125,8 +127,11 @@ typedef struct {
     int            pipe[2];
 } BeguileFeatureVars;
 
-#define beguile_set_hook(function)                                             \
-    beguile_global_vars.hook = function
+#define beguile_enable_hook(function) beguile_global_vars.hook = function
+#define beguile_disable_hook() beguile_global_vars.hook = NULL
+
+#define beguile_enable_fork() beguile_global_vars.fork_enabled = 1
+#define beguile_disable_fork() beguile_global_vars.fork_enabled = 0
 
 #define BEGUILE_TRIGGER_HOOK(type)                                             \
     if (beguile_global_vars.hook != NULL) beguile_global_vars.hook(type)
@@ -197,7 +202,7 @@ typedef struct {
     BEGUILE_PRINT(intro_keyword " " text "\n");
 
 #define BEGUILE_MESSAGE_PARENT(message)                                        \
-    beguile_feature_vars.written_bytes = write(beguile_feature_vars.pipe[1], message, sizeof(char))
+    (beguile_global_vars.fork_enabled ? beguile_feature_vars.written_bytes = write(beguile_feature_vars.pipe[1], message, sizeof(char)) : 0)
 
 #define BEGUILE_BACKGROUND(background_keyword)                                 \
     BEGUILE_REAL_BACKGROUND(background_keyword, __LINE__)
@@ -224,53 +229,57 @@ typedef struct {
     do {                                                                       \
         ++beguile_stats.scenario_total;                                        \
         beguile_flags.scenario_has_failed = 0;                                 \
-        if (pipe(beguile_feature_vars.pipe) != 0) {                                    \
-            beguile_flags.scenario_has_failed = 1;                             \
-            BEGUILE_EOL;                                                       \
-            BEGUILE_INDENT_1;                                                  \
-            BEGUILE_PRINT(BEGUILE_STYLE_SCENARIO(scenario_keyword ":") " "     \
-                scenario_name " "                                              \
-                BEGUILE_STYLE_FAILURE(BEGUILE_MSG_COULD_NOT_PIPE) "\n");       \
-                break;                                                         \
-        };                                                                     \
-        beguile_feature_vars.pid = fork();                                             \
-        if (beguile_feature_vars.pid < 0) {                                            \
-            beguile_flags.scenario_has_failed = 1;                             \
-            BEGUILE_EOL;                                                       \
-            BEGUILE_INDENT_1;                                                  \
-            BEGUILE_PRINT(BEGUILE_STYLE_SCENARIO(scenario_keyword ":") " "     \
-                scenario_name " "                                              \
-                BEGUILE_STYLE_FAILURE(BEGUILE_MSG_COULD_NOT_FORK) "\n");       \
-        } else if (beguile_feature_vars.pid > 0) {                                     \
-            char beguile_message;                                              \
-            close(beguile_feature_vars.pipe[1]);                                       \
-            while (read(beguile_feature_vars.pipe[0], &beguile_message, sizeof(char))) { \
-                switch (beguile_message) {                                     \
-                    case 'T':                                                  \
-                        ++beguile_stats.step_total;                            \
-                        beguile_flags.need_eol = 1;                            \
-                        break;                                                 \
-                    case 'G': ++beguile_stats.signal_total; break;             \
-                    case 'g': --beguile_stats.signal_total; break;             \
-                    case 'F': ++beguile_stats.step_failed; break;              \
-                    case 'f': --beguile_stats.step_failed; break;              \
-                    case 'c': BEGUILE_TRIGGER_HOOK(BEGUILE_HOOK_BEFORE_SCENARIO); break; \
-                    case 'b': BEGUILE_TRIGGER_HOOK(BEGUILE_HOOK_BEFORE_BACKGROUND); break; \
-                    case 'B': BEGUILE_TRIGGER_HOOK(BEGUILE_HOOK_AFTER_BACKGROUND); break; \
-                    case 's': BEGUILE_TRIGGER_HOOK(BEGUILE_HOOK_BEFORE_STEP); break; \
-                    case 'S': BEGUILE_TRIGGER_HOOK(BEGUILE_HOOK_AFTER_STEP); break; \
+        if (beguile_global_vars.fork_enabled) {                                \
+            if (pipe(beguile_feature_vars.pipe) != 0) {                        \
+                beguile_flags.scenario_has_failed = 1;                         \
+                BEGUILE_EOL;                                                   \
+                BEGUILE_INDENT_1;                                              \
+                BEGUILE_PRINT(BEGUILE_STYLE_SCENARIO(scenario_keyword ":") " " \
+                    scenario_name " "                                          \
+                    BEGUILE_STYLE_FAILURE(BEGUILE_MSG_COULD_NOT_PIPE) "\n");   \
+                    break;                                                     \
+            }                                                                  \
+            beguile_feature_vars.pid = fork();                                 \
+            if (beguile_feature_vars.pid < 0) {                                \
+                close(beguile_feature_vars.pipe[0]);                           \
+                close(beguile_feature_vars.pipe[1]);                           \
+                beguile_flags.scenario_has_failed = 1;                         \
+                BEGUILE_EOL;                                                   \
+                BEGUILE_INDENT_1;                                              \
+                BEGUILE_PRINT(BEGUILE_STYLE_SCENARIO(scenario_keyword ":") " " \
+                    scenario_name " "                                          \
+                    BEGUILE_STYLE_FAILURE(BEGUILE_MSG_COULD_NOT_FORK) "\n");   \
+                    break;                                                     \
+            } else if (beguile_feature_vars.pid > 0) {                         \
+                char beguile_message;                                          \
+                close(beguile_feature_vars.pipe[1]);                           \
+                while (read(beguile_feature_vars.pipe[0], &beguile_message, sizeof(char))) { \
+                    switch (beguile_message) {                                 \
+                        case 'T':                                              \
+                            ++beguile_stats.step_total;                        \
+                            beguile_flags.need_eol = 1;                        \
+                            break;                                             \
+                        case 'G': ++beguile_stats.signal_total; break;         \
+                        case 'g': --beguile_stats.signal_total; break;         \
+                        case 'F': ++beguile_stats.step_failed; break;          \
+                        case 'f': --beguile_stats.step_failed; break;          \
+                        case 'c': BEGUILE_TRIGGER_HOOK(BEGUILE_HOOK_BEFORE_SCENARIO); break; \
+                        case 'b': BEGUILE_TRIGGER_HOOK(BEGUILE_HOOK_BEFORE_BACKGROUND); break; \
+                        case 'B': BEGUILE_TRIGGER_HOOK(BEGUILE_HOOK_AFTER_BACKGROUND); break; \
+                        case 's': BEGUILE_TRIGGER_HOOK(BEGUILE_HOOK_BEFORE_STEP); break; \
+                        case 'S': BEGUILE_TRIGGER_HOOK(BEGUILE_HOOK_AFTER_STEP); break; \
+                    }                                                          \
                 }                                                              \
+                int beguile_status;                                            \
+                waitpid(beguile_feature_vars.pid, &beguile_status, 0);         \
+                beguile_flags.background_printed = 1;                          \
+                beguile_flags.scenario_has_failed = beguile_status != EXIT_SUCCESS; \
             }                                                                  \
-            int beguile_status;                                                \
-            waitpid(beguile_feature_vars.pid, &beguile_status, 0);                     \
-            beguile_flags.background_printed = 1;                              \
-            beguile_flags.scenario_has_failed = beguile_status != EXIT_SUCCESS; \
-        } else {                                                               \
-            close(beguile_feature_vars.pipe[0]);                                       \
-            if (beguile_feature_vars.background_section != NULL                        \
-                && !setjmp(beguile_feature_vars.jmp_buf)) {                            \
-                goto *beguile_feature_vars.background_section;                         \
-            }                                                                  \
+        }                                                                      \
+        if (!beguile_global_vars.fork_enabled || beguile_feature_vars.pid == 0) { \
+            if (beguile_global_vars.fork_enabled) close(beguile_feature_vars.pipe[0]); \
+            if (beguile_feature_vars.background_section != NULL && !setjmp(beguile_feature_vars.jmp_buf)) \
+                goto *beguile_feature_vars.background_section;                 \
             BEGUILE_MESSAGE_PARENT("c");                                       \
             beguile_flags.outside_background = 1;                              \
             BEGUILE_EOL;                                                       \
@@ -280,7 +289,8 @@ typedef struct {
 
 #define BEGUILE_ENDSCENARIO                                                    \
             beguile_flags.outside_background = 0;                              \
-            _exit(beguile_flags.scenario_has_failed ? EXIT_FAILURE : EXIT_SUCCESS); \
+            if (beguile_global_vars.fork_enabled)                              \
+                _exit(beguile_flags.scenario_has_failed ? EXIT_FAILURE : EXIT_SUCCESS); \
         }                                                                      \
         if (beguile_flags.scenario_has_failed) {                               \
             ++beguile_stats.scenario_failed;                                   \

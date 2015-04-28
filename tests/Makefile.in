@@ -31,8 +31,8 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-TESTS = backgrounds$(EXEEXT) hooks$(EXEEXT)
-check_PROGRAMS = backgrounds$(EXEEXT) hooks$(EXEEXT)
+TESTS = backgrounds$(EXEEXT) hooks$(EXEEXT) fork$(EXEEXT)
+check_PROGRAMS = backgrounds$(EXEEXT) hooks$(EXEEXT) fork$(EXEEXT)
 subdir = tests
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -45,6 +45,9 @@ CONFIG_CLEAN_VPATH_FILES =
 am_backgrounds_OBJECTS = backgrounds.$(OBJEXT)
 backgrounds_OBJECTS = $(am_backgrounds_OBJECTS)
 backgrounds_DEPENDENCIES =
+am_fork_OBJECTS = fork.$(OBJEXT)
+fork_OBJECTS = $(am_fork_OBJECTS)
+fork_DEPENDENCIES =
 am_hooks_OBJECTS = hooks.$(OBJEXT)
 hooks_OBJECTS = $(am_hooks_OBJECTS)
 hooks_DEPENDENCIES =
@@ -56,8 +59,8 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(backgrounds_SOURCES) $(hooks_SOURCES)
-DIST_SOURCES = $(backgrounds_SOURCES) $(hooks_SOURCES)
+SOURCES = $(backgrounds_SOURCES) $(fork_SOURCES) $(hooks_SOURCES)
+DIST_SOURCES = $(backgrounds_SOURCES) $(fork_SOURCES) $(hooks_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 am__tty_colors = \
@@ -158,6 +161,8 @@ backgrounds_SOURCES = backgrounds.c
 backgrounds_LDADD = @CHECK_LIBS@
 hooks_SOURCES = hooks.c
 hooks_LDADD = @CHECK_LIBS@
+fork_SOURCES = fork.c
+fork_LDADD = @CHECK_LIBS@
 all: all-am
 
 .SUFFIXES:
@@ -198,6 +203,9 @@ clean-checkPROGRAMS:
 backgrounds$(EXEEXT): $(backgrounds_OBJECTS) $(backgrounds_DEPENDENCIES) $(EXTRA_backgrounds_DEPENDENCIES) 
 	@rm -f backgrounds$(EXEEXT)
 	$(LINK) $(backgrounds_OBJECTS) $(backgrounds_LDADD) $(LIBS)
+fork$(EXEEXT): $(fork_OBJECTS) $(fork_DEPENDENCIES) $(EXTRA_fork_DEPENDENCIES) 
+	@rm -f fork$(EXEEXT)
+	$(LINK) $(fork_OBJECTS) $(fork_LDADD) $(LIBS)
 hooks$(EXEEXT): $(hooks_OBJECTS) $(hooks_DEPENDENCIES) $(EXTRA_hooks_DEPENDENCIES) 
 	@rm -f hooks$(EXEEXT)
 	$(LINK) $(hooks_OBJECTS) $(hooks_LDADD) $(LIBS)
@@ -209,6 +217,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/backgrounds.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fork.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hooks.Po@am__quote@
 
 .c.o:

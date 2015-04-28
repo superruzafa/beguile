@@ -138,7 +138,7 @@ END_TEST
 
 int main(int argc, char **argv)
 {
-    beguile_set_output(0);
+    beguile_disable_output();
 
     Suite *suite = suite_create("Backgrounds");
     TCase *tcase = tcase_create("Backgrounds");

@@ -135,8 +135,8 @@ END_TEST
 
 int main(int argc, char **argv)
 {
-    beguile_set_output(0);
-    beguile_set_hook(hook_logger);
+    beguile_disable_output();
+    beguile_enable_hook(hook_logger);
 
     Suite *suite = suite_create("Hooks");
     TCase *tcase = tcase_create("Hooks");
