@@ -1,8 +1,11 @@
 AM_CPPFLAGS = -I$(top_builddir)/src @CHECK_CFLAGS@
 
-TESTS = backgrounds hooks fork
+TESTS = asserts backgrounds hooks fork
 
-check_PROGRAMS = backgrounds hooks fork
+check_PROGRAMS = asserts backgrounds hooks fork
+
+asserts_SOURCES = asserts.c
+asserts_LDADD = @CHECK_LIBS@
 
 backgrounds_SOURCES = backgrounds.c
 backgrounds_LDADD = @CHECK_LIBS@
