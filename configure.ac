@@ -18,6 +18,7 @@ AC_PROG_RANLIB
 # Checks for typedefs, structures, and compiler characteristics.
 
 # Checks for library functions.
+PKG_CHECK_MODULES([CHECK], [check])
 
 # Beguile modules
 MODULE_PACKAGE=package.h
@@ -41,7 +42,7 @@ AC_CONFIG_FILES([
     Makefile
     src/Makefile
     src/package.h
-    features/Makefile
+    tests/Makefile
     examples/Makefile
     examples/stack/Makefile
 ])

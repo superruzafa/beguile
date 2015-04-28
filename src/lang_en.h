@@ -30,8 +30,8 @@
 #define should_be_less_or_equal_than(x)         BEGUILE_ASSERT_SHOULD_BE_LESS_OR_EQUAL_THAN(x)
 #define should_be_greater_than(x)               BEGUILE_ASSERT_SHOULD_BE_GREATER_THAN(x)
 #define should_be_greater_or_equal_than(x)      BEGUILE_ASSERT_SHOULD_BE_GREATER_OR_EQUAL_THAN(x)
-#define should_be_null(x)                       BEGUILE_ASSERT_SHOULD_NOT_BE_EQUAL_TO(x)
-#define should_not_be_null(x)                   BEGUILE_ASSERT_SHOULD_NOT_BE_EQUAL_TO(x)
+#define should_be_null                          BEGUILE_ASSERT_SHOULD_BE_NULL
+#define should_not_be_null                      BEGUILE_ASSERT_SHOULD_NOT_BE_NULL
 
 #define BEGUILE_MSG_OK                          "OK"
 #define BEGUILE_MSG_FAIL                        "FAIL"

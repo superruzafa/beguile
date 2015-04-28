@@ -3,7 +3,7 @@
 
 FeatureRunner
 
-beguile_set_hook(stack_hook);
+beguile_enable_hook(stack_hook);
 
 Feature ("A stack")
     In_order_to ("write once and use it in multiple projects")
