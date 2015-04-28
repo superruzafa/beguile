@@ -1,4 +1,4 @@
-Beguile, BDD framework for C
+Beguile, a BDD framework for C
 ==============================
 
 [![Build Status](https://travis-ci.org/superruzafa/beguile.svg)](https://travis-ci.org/superruzafa/beguile)
@@ -16,16 +16,16 @@ Beguile is, in essence, a collection of C macros to write simple, concise and be
 
 ```c
 Feature ("A list in C")
-  In_order_to ("")
-  As_a ("C developer")
-  I_want_to ("implement a list in C")
-  
-  Scenario ("Pushing an element")
-    Given (an_empty_list())
-    When (I_push(42))
-    Then (the_stack_top() should_be(42))
-    And (the_stack_size() should_be(1))
-  EndScenario
+    In_order_to ("write once and use it in multiple projects")
+    As_a ("C developer")
+    I_want_to ("create a stack ADT library")
+
+    Scenario ("Push an element")
+        Given (a_stack())
+        When (I_push(42))
+        Then (the_stack_size() should_be(1))
+        And (the_stack_top() should_be(42))
+    EndScenario
 EndFeature
 ```
 
@@ -38,9 +38,9 @@ The optional narrative part of the feature could be defined with the macros `In_
 
 ```c
 Feature ("Descriptive title of a requirement")
-    In_order_to ("benefit achieved")
+    In_order_to ("achieved benefit")
     As_a ("the person that wants the feature")
-    I_want_to ("feature requested")
+    I_want_to ("requested feature")
     
     // Scenarios...
 EndFeature
@@ -154,7 +154,9 @@ int main(int argc, char **argv)
 
 ## Hooks
 
-Beguile allows you to hooking into the test process. You can specify the function that will be called using the `beguile_set_hook(...)` function. A hook function is expected to have the signture `void you_hook_name(BeguileHookType type)`. Everytime an event is triggered this function will be called with one of these self-explanatory values:
+Beguile allows you to hooking into the test process. You can specify the function that will be called using the `beguile_enable_hook(...)` function.
+A hook function is expected to have the signature `void you_hook_name(BeguileHookType type, int is_child)`.
+Everytime an event is triggered this function will be called with one of these self-explanatory values:
 
 * `BEGUILE_HOOK_BEFORE_FEATURE`
 * `BEGUILE_HOOK_AFTER_FEATURE`
@@ -167,15 +169,18 @@ Beguile allows you to hooking into the test process. You can specify the functio
 
 
 ```c
-void my_hook_function(BeguileHookType type)
+void my_hook_function(BeguileHookType type, int is_child)
 {
     // ...
 }
 
+beguile_enable_hook(my_hook_function);
 
 FeatureRunner
-beguile_set_hook(my_hook_function);
 
 // features
 
 EndFeatureRunner
+```
+
+The `is_child` parameter is useful to distinguish if the hook is being called either in the parent or the child process.
