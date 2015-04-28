@@ -29,6 +29,23 @@ Feature ("A list in C")
 EndFeature
 ```
 
+When executed the output looks like
+
+    Feature: A list in C
+        In order to write once and use it in multiple projects
+        As a C developer
+        I want to create a stack ADT library
+
+        Scenario: Push an element
+            Given a stack
+            When I push 42
+            Then the stack size should be 1
+            And the stack top should be 42
+
+    1 features (all passed)
+    1 scenarios (all passed)
+    4 steps (all passed)
+
 ## Writing features
 
 A feature is the description of a requirement that want to be achieved and its behavior.
@@ -97,7 +114,7 @@ Feature (...)
         And (int y = 3)
         When (int z = x * y)
         Then (z should_be_equal_to(15))
-    ScenarioEnd
+    EndScenario
 ```
 
 ### Asserts
@@ -108,16 +125,16 @@ Beguile comes with a predefined set of asserts:
 
 | Assert                                  | What it checks                      |
 |-----------------------------------------|-------------------------------------|
-| `should_be_equal_to(x)`                 | value == x                          |
+| `should_be_equal_to(x)`                 | `value == x`                        |
 | `should_be(x)`                          | Alias for `should_be_equal_to(x)`   |
-| `should_not_be_equal_to(x)`             | value != x                          |
+| `should_not_be_equal_to(x)`             | `value != x`                        |
 | `should_not_be(x)`                      | Alias for `shouldnt_be_equal_to(x)` |
-| `should_be_greater_than(x)`             | value > x                           |
-| `should_be_greater_or_equal_than(x)`    | value >= x                          |
-| `should_be_less_than(x)`                | value < x                           |
-| `should_be_less_or_equal_than(x)`       | value <= x                          |
-| `should_be_null`                        | value == NULL                       |
-| `shouldnt_be_null`                      | value != NULL                       |
+| `should_be_greater_than(x)`             | `value > x`                         |
+| `should_be_greater_or_equal_than(x)`    | `value >= x`                        |
+| `should_be_less_than(x)`                | `value < x`                         |
+| `should_be_less_or_equal_than(x)`       | `value <= x`                        |
+| `should_be_null`                        | `value == NULL`                     |
+| `shouldnt_be_null`                      | `value != NULL`                     |
 
 ## Running features
 
