@@ -3,9 +3,9 @@
 static Stack *stack;
 static int last_result;
 
-void stack_hook(BeguileHookType type)
+void stack_hook(BeguileHookType type, int is_child)
 {
-    if (type == BEGUILE_HOOK_AFTER_SCENARIO) {
+    if (type == BEGUILE_HOOK_AFTER_SCENARIO && is_child) {
         stack = stack_free(stack);
     }
 }
