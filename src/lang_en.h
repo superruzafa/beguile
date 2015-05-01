@@ -1,4 +1,4 @@
-#if !defined BEGUILE_OPTION_LANG || BEGUILE_OPTION_LANG == en
+#ifndef BEGUILE_LANG_ES
 
 #define Feature(feature_name)                   BEGUILE_FEATURE("Feature", feature_name)
 #define EndFeature                              BEGUILE_ENDFEATURE

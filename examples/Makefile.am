@@ -1,4 +1,4 @@
-SUBDIRS = stack
+SUBDIRS = stack i18n
 
 examples:
 	for subdir in $(SUBDIRS); do \

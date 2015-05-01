@@ -30,6 +30,10 @@ AC_ARG_ENABLE([english], AS_HELP_STRING([--disable-english], [Disable english la
 AS_IF([test "x$enable_english" != "xno"], [
     MODULES="$MODULES lang_en.h"
 ])
+AC_ARG_ENABLE([spanish], AS_HELP_STRING([--enable-spanish], [Enable spanish language]))
+AS_IF([test "x$enable_spanish" = "xyes"], [
+    MODULES="$MODULES lang_es.h"
+])
 
 MODULES="$MODULES footer.h"
 AC_SUBST([MODULES])
@@ -41,5 +45,6 @@ AC_CONFIG_FILES([
     tests/Makefile
     examples/Makefile
     examples/stack/Makefile
+    examples/i18n/Makefile
 ])
 AC_OUTPUT
