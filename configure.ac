@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.68])
-AC_INIT([Beguile], [0.1.0], [superruzafa@gmail.com], [beguile])
+AC_INIT([Beguile], [0.2.0], [superruzafa@gmail.com], [beguile])
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([src/package.h.in])
 AC_CONFIG_MACRO_DIR([m4])
@@ -18,23 +18,19 @@ AC_PROG_RANLIB
 # Checks for typedefs, structures, and compiler characteristics.
 
 # Checks for library functions.
-PKG_CHECK_MODULES([CHECK], [check])
+AC_ARG_WITH([tests], AS_HELP_STRING([--without-tests], [Disable tests]))
+AS_IF([test "x$with_tests" != "xno"], [
+    PKG_CHECK_MODULES([CHECK], [check], [], [AC_MSG_ERROR([No package 'check' found. Install check package or try ./configure --without-tests])])
+])
 
 # Beguile modules
-MODULE_PACKAGE=package.h
-MODULE_UTIL=util.h
-MODULE_CORE=core.h
-MODULE_LANG_EN=lang_en.h
-MODULE_SIGNALS=signals.h
-MODULE_STYLE=style.h
+MODULES="header.h package.h util.h style.h signals.h core.h"
 
-MODULES="$MODULES header.h"
-MODULES="$MODULES $MODULE_PACKAGE"
-MODULES="$MODULES $MODULE_UTIL"
-MODULES="$MODULES $MODULE_STYLE"
-MODULES="$MODULES $MODULE_CORE"
-MODULES="$MODULES $MODULE_LANG_EN"
-MODULES="$MODULES $MODULE_SIGNALS"
+AC_ARG_ENABLE([english], AS_HELP_STRING([--disable-english], [Disable english language]))
+AS_IF([test "x$enable_english" != "xno"], [
+    MODULES="$MODULES lang_en.h"
+])
+
 MODULES="$MODULES footer.h"
 AC_SUBST([MODULES])
 

@@ -1,6 +1,8 @@
 /.DS_Store
 /.idea/
 /.vagrant/
+/Vagrantfile
+/beguile*.tar.gz
 /autom4te.cache/
 /config.status
 .deps/

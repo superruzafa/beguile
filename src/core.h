@@ -1,14 +1,3 @@
-typedef enum {
-    BEGUILE_HOOK_BEFORE_FEATURE,
-    BEGUILE_HOOK_AFTER_FEATURE,
-    BEGUILE_HOOK_BEFORE_BACKGROUND,
-    BEGUILE_HOOK_AFTER_BACKGROUND,
-    BEGUILE_HOOK_BEFORE_SCENARIO,
-    BEGUILE_HOOK_AFTER_SCENARIO,
-    BEGUILE_HOOK_BEFORE_STEP,
-    BEGUILE_HOOK_AFTER_STEP,
-} BeguileHookType;
-
 typedef struct {
     unsigned int feature_total;
     unsigned int feature_failed;
@@ -27,16 +16,6 @@ typedef struct {
     int background_printed;
     int outside_background;
 } BeguileFlags;
-
-typedef void (* BeguileHook)(BeguileHookType type, int is_child);
-
-typedef struct {
-    int             output_enabled;
-    int             fork_enabled;
-    BeguileHook     hook;
-} BeguileGlobalVars;
-
-BeguileGlobalVars beguile_global_vars = {1, 1, NULL};
 
 typedef struct {
     int            written_bytes;

@@ -11,8 +11,29 @@
 #include <string.h>
 #include <unistd.h>
 
+typedef enum {
+    BEGUILE_HOOK_BEFORE_FEATURE,
+    BEGUILE_HOOK_AFTER_FEATURE,
+    BEGUILE_HOOK_BEFORE_BACKGROUND,
+    BEGUILE_HOOK_AFTER_BACKGROUND,
+    BEGUILE_HOOK_BEFORE_SCENARIO,
+    BEGUILE_HOOK_AFTER_SCENARIO,
+    BEGUILE_HOOK_BEFORE_STEP,
+    BEGUILE_HOOK_AFTER_STEP,
+} BeguileHookType;
+
+typedef void (* BeguileHook)(BeguileHookType type, int is_child);
+
+typedef struct {
+    int             output_enabled;
+    int             fork_enabled;
+    BeguileHook     hook;
+} BeguileGlobalVars;
+
+BeguileGlobalVars beguile_global_vars = {1, 1, NULL};
+
 #define BEGUILE_NAME "Beguile"
-#define BEGUILE_VERSION "0.1.0"
+#define BEGUILE_VERSION "0.2.0"
 #define BEGUILE_AUTHOR "Alfonso Ruzafa"
 #define BEGUILE_EMAIL  "superruzafa@gmail.com"
 #define BEGUILE_BRAND "Beguile, a BDD framework for C"
@@ -79,17 +100,27 @@
 #define BEGUILE_STYLE_SUCCESS(message)                  BEGUILE_STYLE_FOREGROUND_GREEN message BEGUILE_STYLE_RESET
 #define BEGUILE_STYLE_FAILURE(message)                  BEGUILE_STYLE_FOREGROUND_RED message BEGUILE_STYLE_RESET
 
-typedef enum {
-    BEGUILE_HOOK_BEFORE_FEATURE,
-    BEGUILE_HOOK_AFTER_FEATURE,
-    BEGUILE_HOOK_BEFORE_BACKGROUND,
-    BEGUILE_HOOK_AFTER_BACKGROUND,
-    BEGUILE_HOOK_BEFORE_SCENARIO,
-    BEGUILE_HOOK_AFTER_SCENARIO,
-    BEGUILE_HOOK_BEFORE_STEP,
-    BEGUILE_HOOK_AFTER_STEP,
-} BeguileHookType;
+#define BEGUILE_SIGNALS SIGABRT, SIGFPE, SIGSEGV
 
+void beguile_signal_handler(int signal)
+{
+    BEGUILE_PRINT(" " BEGUILE_STYLE_FAILURE("%s") "\n", strsignal(signal));
+    _exit(EXIT_FAILURE);
+}
+
+#define BEGUILE_REGISTER_SIGNAL_HANDLER                                                                               \
+    do {                                                                                                              \
+        struct sigaction beguile_sigaction;                                                                           \
+        sigemptyset(&beguile_sigaction.sa_mask);                                                                      \
+        beguile_sigaction.sa_handler = beguile_signal_handler;                                                        \
+        int beguile_signals[] = { BEGUILE_SIGNALS, 0 }, beguile_i;                                                    \
+        for (beguile_i = 0; beguile_signals[beguile_i] != 0; ++beguile_i) {                                           \
+            if (sigaction(beguile_signals[beguile_i], &beguile_sigaction, NULL) < 0) {                                \
+                BEGUILE_PRINT(BEGUILE_STYLE_FAILURE("Cannot set signal error handler for signal %d") "\n", beguile_signals[beguile_i]); \
+                exit(EXIT_FAILURE);                                                                                   \
+            }                                                                                                         \
+        }                                                                                                             \
+    } while(0)
 typedef struct {
     unsigned int feature_total;
     unsigned int feature_failed;
@@ -108,16 +139,6 @@ typedef struct {
     int background_printed;
     int outside_background;
 } BeguileFlags;
-
-typedef void (* BeguileHook)(BeguileHookType type, int is_child);
-
-typedef struct {
-    int             output_enabled;
-    int             fork_enabled;
-    BeguileHook     hook;
-} BeguileGlobalVars;
-
-BeguileGlobalVars beguile_global_vars = {1, 1, NULL};
 
 typedef struct {
     int            written_bytes;
@@ -386,25 +407,4 @@ typedef struct {
 
 #endif
 
-#define BEGUILE_SIGNALS SIGABRT, SIGFPE, SIGSEGV
-
-void beguile_signal_handler(int signal)
-{
-    BEGUILE_PRINT(" " BEGUILE_STYLE_FAILURE("%s") "\n", strsignal(signal));
-    _exit(EXIT_FAILURE);
-}
-
-#define BEGUILE_REGISTER_SIGNAL_HANDLER                                                                               \
-    do {                                                                                                              \
-        struct sigaction beguile_sigaction;                                                                           \
-        sigemptyset(&beguile_sigaction.sa_mask);                                                                      \
-        beguile_sigaction.sa_handler = beguile_signal_handler;                                                        \
-        int beguile_signals[] = { BEGUILE_SIGNALS, 0 }, beguile_i;                                                    \
-        for (beguile_i = 0; beguile_signals[beguile_i] != 0; ++beguile_i) {                                           \
-            if (sigaction(beguile_signals[beguile_i], &beguile_sigaction, NULL) < 0) {                                \
-                BEGUILE_PRINT(BEGUILE_STYLE_FAILURE("Cannot set signal error handler for signal %d") "\n", beguile_signals[beguile_i]); \
-                exit(EXIT_FAILURE);                                                                                   \
-            }                                                                                                         \
-        }                                                                                                             \
-    } while(0)
 #endif // __BEGUILE_H__
