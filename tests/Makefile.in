@@ -32,9 +32,9 @@ NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
 TESTS = asserts$(EXEEXT) backgrounds$(EXEEXT) hooks$(EXEEXT) \
-	fork$(EXEEXT) tags_$(EXEEXT)
+	fork$(EXEEXT) options$(EXEEXT) tags_$(EXEEXT)
 check_PROGRAMS = asserts$(EXEEXT) backgrounds$(EXEEXT) hooks$(EXEEXT) \
-	fork$(EXEEXT) tags_$(EXEEXT)
+	fork$(EXEEXT) options$(EXEEXT) tags_$(EXEEXT)
 subdir = tests
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -56,6 +56,9 @@ fork_LDADD = $(LDADD)
 hooks_SOURCES = hooks.c
 hooks_OBJECTS = hooks.$(OBJEXT)
 hooks_LDADD = $(LDADD)
+options_SOURCES = options.c
+options_OBJECTS = options.$(OBJEXT)
+options_LDADD = $(LDADD)
 am_tags__OBJECTS = tags.$(OBJEXT)
 tags__OBJECTS = $(am_tags__OBJECTS)
 tags__LDADD = $(LDADD)
@@ -67,8 +70,10 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = asserts.c backgrounds.c fork.c hooks.c $(tags__SOURCES)
-DIST_SOURCES = asserts.c backgrounds.c fork.c hooks.c $(tags__SOURCES)
+SOURCES = asserts.c backgrounds.c fork.c hooks.c options.c \
+	$(tags__SOURCES)
+DIST_SOURCES = asserts.c backgrounds.c fork.c hooks.c options.c \
+	$(tags__SOURCES)
 ETAGS = etags
 CTAGS = ctags
 am__tty_colors = \
@@ -218,6 +223,9 @@ fork$(EXEEXT): $(fork_OBJECTS) $(fork_DEPENDENCIES) $(EXTRA_fork_DEPENDENCIES)
 hooks$(EXEEXT): $(hooks_OBJECTS) $(hooks_DEPENDENCIES) $(EXTRA_hooks_DEPENDENCIES) 
 	@rm -f hooks$(EXEEXT)
 	$(LINK) $(hooks_OBJECTS) $(hooks_LDADD) $(LIBS)
+options$(EXEEXT): $(options_OBJECTS) $(options_DEPENDENCIES) $(EXTRA_options_DEPENDENCIES) 
+	@rm -f options$(EXEEXT)
+	$(LINK) $(options_OBJECTS) $(options_LDADD) $(LIBS)
 tags_$(EXEEXT): $(tags__OBJECTS) $(tags__DEPENDENCIES) $(EXTRA_tags__DEPENDENCIES) 
 	@rm -f tags_$(EXEEXT)
 	$(LINK) $(tags__OBJECTS) $(tags__LDADD) $(LIBS)
@@ -232,6 +240,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/backgrounds.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fork.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hooks.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/options.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tags.Po@am__quote@
 
 .c.o:

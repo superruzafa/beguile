@@ -67,7 +67,8 @@ typedef struct {
 #define FeatureRunner                                                          \
     int main(int argc, char **argv)                                            \
     {                                                                          \
-        FeatureRunnerHeader
+        FeatureRunnerHeader                                                    \
+        BeguileParseOptions(argc, argv);
 
 #define EndFeatureRunner                                                       \
         FeatureRunnerFooter                                                    \
