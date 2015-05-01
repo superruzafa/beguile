@@ -562,7 +562,7 @@ PACKAGE_TARNAME='beguile'
 PACKAGE_VERSION='0.2.0'
 PACKAGE_STRING='Beguile 0.2.0'
 PACKAGE_BUGREPORT='superruzafa@gmail.com'
-PACKAGE_URL=''
+PACKAGE_URL='https://github.com/superruzafa/beguile.git'
 
 ac_unique_file="src/package.h.in"
 ac_subst_vars='am__EXEEXT_FALSE
@@ -570,6 +570,9 @@ am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
 MODULES
+SUPPORT_ES
+SUPPORT_EN
+DATE
 CHECK_LIBS
 CHECK_CFLAGS
 PKG_CONFIG_LIBDIR
@@ -1322,6 +1325,7 @@ Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
 
 Report bugs to <superruzafa@gmail.com>.
+Beguile home page: <https://github.com/superruzafa/beguile.git>.
 _ACEOF
 ac_status=$?
 fi
@@ -3581,8 +3585,11 @@ fi
 
 fi
 
+DATE=`date +"%Y-%m-%d %H:%M:%S"`
+
+
 # Beguile modules
-MODULES="header.h package.h util.h style.h signals.h core.h"
+MODULES="info.h header.h package.h util.h style.h signals.h core.h"
 
 # Check whether --enable-english was given.
 if test "${enable_english+set}" = set; then :
@@ -3592,8 +3599,13 @@ fi
 if test "x$enable_english" != "xno"; then :
 
     MODULES="$MODULES lang_en.h"
+    SUPPORT_EN=x
 
+else
+  SUPPORT_EN="x"
 fi
+
+
 # Check whether --enable-spanish was given.
 if test "${enable_spanish+set}" = set; then :
   enableval=$enable_spanish;
@@ -3602,13 +3614,17 @@ fi
 if test "x$enable_spanish" = "xyes"; then :
 
     MODULES="$MODULES lang_es.h"
+    SUPPORT_ES=x
 
+else
+  SUPPORT_ES=" "
 fi
+
 
 MODULES="$MODULES footer.h"
 
 
-ac_config_files="$ac_config_files Makefile src/Makefile src/package.h tests/Makefile examples/Makefile examples/stack/Makefile examples/i18n/Makefile"
+ac_config_files="$ac_config_files Makefile src/Makefile src/package.h src/info.h tests/Makefile examples/Makefile examples/stack/Makefile examples/i18n/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -4231,7 +4247,8 @@ $config_files
 Configuration commands:
 $config_commands
 
-Report bugs to <superruzafa@gmail.com>."
+Report bugs to <superruzafa@gmail.com>.
+Beguile home page: <https://github.com/superruzafa/beguile.git>."
 
 _ACEOF
 cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
@@ -4359,6 +4376,7 @@ do
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
     "src/package.h") CONFIG_FILES="$CONFIG_FILES src/package.h" ;;
+    "src/info.h") CONFIG_FILES="$CONFIG_FILES src/info.h" ;;
     "tests/Makefile") CONFIG_FILES="$CONFIG_FILES tests/Makefile" ;;
     "examples/Makefile") CONFIG_FILES="$CONFIG_FILES examples/Makefile" ;;
     "examples/stack/Makefile") CONFIG_FILES="$CONFIG_FILES examples/stack/Makefile" ;;

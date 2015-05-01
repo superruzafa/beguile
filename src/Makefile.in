@@ -33,13 +33,13 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	$(srcdir)/package.h.in
+	$(srcdir)/info.h.in $(srcdir)/package.h.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
-CONFIG_CLEAN_FILES = package.h
+CONFIG_CLEAN_FILES = package.h info.h
 CONFIG_CLEAN_VPATH_FILES =
 SOURCES =
 DIST_SOURCES =
@@ -57,6 +57,7 @@ CHECK_CFLAGS = @CHECK_CFLAGS@
 CHECK_LIBS = @CHECK_LIBS@
 CPPFLAGS = @CPPFLAGS@
 CYGPATH_W = @CYGPATH_W@
+DATE = @DATE@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 ECHO_C = @ECHO_C@
@@ -91,6 +92,8 @@ RANLIB = @RANLIB@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
+SUPPORT_EN = @SUPPORT_EN@
+SUPPORT_ES = @SUPPORT_ES@
 VERSION = @VERSION@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
@@ -135,9 +138,9 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 BUILT_SOURCES = beguile.h
-CLEANFILES = package.h
+CLEANFILES = package.h info.h
 DISTCLEANFILES = beguile.h
-EXTRA_DIST = beguile.h package.h core.h footer.h header.h lang_en.h lang_es.h signals.h style.h util.h
+EXTRA_DIST = beguile.h package.h info.h core.h footer.h header.h lang_en.h lang_es.h signals.h style.h util.h
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -173,6 +176,8 @@ $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
 package.h: $(top_builddir)/config.status $(srcdir)/package.h.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+info.h: $(top_builddir)/config.status $(srcdir)/info.h.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 tags: TAGS
 TAGS:
