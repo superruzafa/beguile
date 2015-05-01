@@ -28,6 +28,7 @@ typedef struct {
     int             output_enabled;
     int             fork_enabled;
     BeguileHook     hook;
+    char          **user_tags;
 } BeguileGlobalVars;
 
 BeguileGlobalVars beguile_global_vars = {1, 1, NULL};

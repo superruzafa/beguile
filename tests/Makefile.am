@@ -1,20 +1,11 @@
 AM_CPPFLAGS = -I$(top_builddir)/src @CHECK_CFLAGS@
+LIBS = @CHECK_LIBS@
 
-TESTS = asserts backgrounds hooks fork
+TESTS = asserts backgrounds hooks fork tags_
 
-check_PROGRAMS = asserts backgrounds hooks fork
+check_PROGRAMS = asserts backgrounds hooks fork tags_
 
-asserts_SOURCES = asserts.c
-asserts_LDADD = @CHECK_LIBS@
-
-backgrounds_SOURCES = backgrounds.c
-backgrounds_LDADD = @CHECK_LIBS@
-
-hooks_SOURCES = hooks.c
-hooks_LDADD = @CHECK_LIBS@
-
-fork_SOURCES = fork.c
-fork_LDADD = @CHECK_LIBS@
+tags__SOURCES = tags.c
 
 $(top_builddir)/src/beguile.h: .FORCE
 	$(MAKE) -C $(top_builddir)/src

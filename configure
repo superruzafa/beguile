@@ -3589,7 +3589,7 @@ DATE=`date +"%Y-%m-%d %H:%M:%S"`
 
 
 # Beguile modules
-MODULES="info.h header.h package.h util.h style.h signals.h core.h"
+MODULES="info.h header.h package.h util.h style.h signals.h core.h tags.h"
 
 # Check whether --enable-english was given.
 if test "${enable_english+set}" = set; then :

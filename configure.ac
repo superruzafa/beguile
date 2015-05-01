@@ -27,7 +27,7 @@ DATE=`date +"%Y-%m-%d %H:%M:%S"`
 AC_SUBST([DATE])
 
 # Beguile modules
-MODULES="info.h header.h package.h util.h style.h signals.h core.h"
+MODULES="info.h header.h package.h util.h style.h signals.h core.h tags.h"
 
 AC_ARG_ENABLE([english], AS_HELP_STRING([--disable-english], [Disable english language]))
 AS_IF([test "x$enable_english" != "xno"], [

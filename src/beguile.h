@@ -1,6 +1,6 @@
 /* Beguile 0.2.0, a BDD framework for C
  *
- * Compiled on 2015-05-01 22:27:11 with support for
+ * Compiled on 2015-05-01 22:41:47 with support for
  *   (x) English language
  *   (x) Spanish language
  *
@@ -57,6 +57,7 @@ typedef struct {
     int             output_enabled;
     int             fork_enabled;
     BeguileHook     hook;
+    char          **user_tags;
 } BeguileGlobalVars;
 
 BeguileGlobalVars beguile_global_vars = {1, 1, NULL};
@@ -176,6 +177,7 @@ typedef struct {
     jmp_buf        jmp_buf;
     pid_t          pid;
     int            pipe[2];
+    char         **last_tags;
 } BeguileFeatureVars;
 
 #define beguile_enable_hook(function) beguile_global_vars.hook = function
@@ -191,6 +193,7 @@ typedef struct {
     BeguileStats beguile_stats = {0, 0, 0, 0, 0, 0, 0};                        \
     BeguileFlags beguile_flags = {0, 0, 0, 0, 0, 0};                           \
     BeguileFeatureVars beguile_feature_vars;                                   \
+    beguile_feature_vars.last_tags = NULL;                                     \
     BEGUILE_REGISTER_SIGNAL_HANDLER;
 
 #define BEGUILE_SUMMARY_COMPONENT(component, total, failed)                    \
@@ -226,6 +229,7 @@ typedef struct {
 
 #define BEGUILE_FEATURE(feature_keyword, feature_name)                         \
     do {                                                                       \
+        BEGUILE_CHECK_TAGS();                                                  \
         BEGUILE_TRIGGER_HOOK(BEGUILE_HOOK_BEFORE_FEATURE, 0);                  \
         ++beguile_stats.feature_total;                                         \
         beguile_flags.feature_has_failed = 0;                                  \
@@ -280,6 +284,7 @@ typedef struct {
 
 #define BEGUILE_SCENARIO(scenario_keyword, scenario_name)                      \
     do {                                                                       \
+        BEGUILE_CHECK_TAGS();                                                  \
         ++beguile_stats.scenario_total;                                        \
         beguile_flags.scenario_has_failed = 0;                                 \
         if (beguile_global_vars.fork_enabled) {                                \
@@ -387,6 +392,47 @@ typedef struct {
 #define BEGUILE_ASSERT_SHOULD_BE_GREATER_THAN(x)           > x    ? BEGUILE_ASSERT_OK : BEGUILE_ASSERT_FAIL
 #define BEGUILE_ASSERT_SHOULD_BE_NULL                     == NULL ? BEGUILE_ASSERT_OK : BEGUILE_ASSERT_FAIL
 #define BEGUILE_ASSERT_SHOULD_NOT_BE_NULL                 != NULL ? BEGUILE_ASSERT_OK : BEGUILE_ASSERT_FAIL
+
+#define BEGUILE_REAL_TAGS(line, ...) \
+    char * BEGUILE_CONCAT(beguile_tags_, line) [] = {__VA_ARGS__, NULL}; \
+    beguile_feature_vars.last_tags = BEGUILE_CONCAT(beguile_tags_, line);
+
+#define BEGUILE_TAGS(...) BEGUILE_REAL_TAGS(__LINE__, __VA_ARGS__)
+
+#define tags(...) BEGUILE_TAGS(__VA_ARGS__)
+
+#define BEGUILE_REAL_SET_TAGS(line, ...) \
+    char * BEGUILE_CONCAT(beguile_set_tags_, line) [] = {__VA_ARGS__, NULL}; \
+    beguile_global_vars.user_tags = BEGUILE_CONCAT(beguile_set_tags_, line)
+
+#define beguile_set_tags(...) BEGUILE_REAL_SET_TAGS(__LINE__, __VA_ARGS__)
+
+int beguile_last_tags_match_all_user_tags_match(char **last_tags)
+{
+    char **tag;
+    char **user_tag = beguile_global_vars.user_tags;
+    int user_tag_found;
+
+    while (user_tag != NULL && *user_tag != NULL) {
+        user_tag_found = 0;
+        for (tag = last_tags; tag != NULL && *tag != NULL; ++tag) {
+            if (strcmp(*user_tag, *tag) == 0) {
+                user_tag_found = 1;
+                break;
+            }
+        }
+        if (!user_tag_found) return 0;
+        ++user_tag;
+    }
+    return 1;
+}
+
+#define BEGUILE_CHECK_TAGS() \
+    if (!beguile_last_tags_match_all_user_tags_match(beguile_feature_vars.last_tags)) { \
+        beguile_feature_vars.last_tags = NULL;                                 \
+        break;                                                                 \
+    } else                                                                     \
+        beguile_feature_vars.last_tags = NULL;
 
 #ifndef BEGUILE_LANG_ES
 

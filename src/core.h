@@ -23,6 +23,7 @@ typedef struct {
     jmp_buf        jmp_buf;
     pid_t          pid;
     int            pipe[2];
+    char         **last_tags;
 } BeguileFeatureVars;
 
 #define beguile_enable_hook(function) beguile_global_vars.hook = function
@@ -38,6 +39,7 @@ typedef struct {
     BeguileStats beguile_stats = {0, 0, 0, 0, 0, 0, 0};                        \
     BeguileFlags beguile_flags = {0, 0, 0, 0, 0, 0};                           \
     BeguileFeatureVars beguile_feature_vars;                                   \
+    beguile_feature_vars.last_tags = NULL;                                     \
     BEGUILE_REGISTER_SIGNAL_HANDLER;
 
 #define BEGUILE_SUMMARY_COMPONENT(component, total, failed)                    \
@@ -73,6 +75,7 @@ typedef struct {
 
 #define BEGUILE_FEATURE(feature_keyword, feature_name)                         \
     do {                                                                       \
+        BEGUILE_CHECK_TAGS();                                                  \
         BEGUILE_TRIGGER_HOOK(BEGUILE_HOOK_BEFORE_FEATURE, 0);                  \
         ++beguile_stats.feature_total;                                         \
         beguile_flags.feature_has_failed = 0;                                  \
@@ -127,6 +130,7 @@ typedef struct {
 
 #define BEGUILE_SCENARIO(scenario_keyword, scenario_name)                      \
     do {                                                                       \
+        BEGUILE_CHECK_TAGS();                                                  \
         ++beguile_stats.scenario_total;                                        \
         beguile_flags.scenario_has_failed = 0;                                 \
         if (beguile_global_vars.fork_enabled) {                                \
