@@ -3624,7 +3624,7 @@ fi
 MODULES="$MODULES footer.h"
 
 
-ac_config_files="$ac_config_files Makefile src/Makefile src/package.h src/info.h tests/Makefile examples/Makefile examples/stack/Makefile examples/i18n/Makefile"
+ac_config_files="$ac_config_files Makefile src/Makefile src/package.h src/info.h tests/Makefile examples/Makefile examples/stack/Makefile examples/hooks/Makefile examples/i18n/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -4380,6 +4380,7 @@ do
     "tests/Makefile") CONFIG_FILES="$CONFIG_FILES tests/Makefile" ;;
     "examples/Makefile") CONFIG_FILES="$CONFIG_FILES examples/Makefile" ;;
     "examples/stack/Makefile") CONFIG_FILES="$CONFIG_FILES examples/stack/Makefile" ;;
+    "examples/hooks/Makefile") CONFIG_FILES="$CONFIG_FILES examples/hooks/Makefile" ;;
     "examples/i18n/Makefile") CONFIG_FILES="$CONFIG_FILES examples/i18n/Makefile" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;

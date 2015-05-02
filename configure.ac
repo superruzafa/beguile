@@ -54,6 +54,7 @@ AC_CONFIG_FILES([
     tests/Makefile
     examples/Makefile
     examples/stack/Makefile
+    examples/hooks/Makefile
     examples/i18n/Makefile
 ])
 AC_OUTPUT
