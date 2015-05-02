@@ -22,6 +22,16 @@ typedef enum {
     BEGUILE_HOOK_AFTER_STEP,
 } BeguileHookType;
 
+typedef struct {
+    unsigned int feature_total;
+    unsigned int feature_failed;
+    unsigned int scenario_total;
+    unsigned int scenario_failed;
+    unsigned int step_total;
+    unsigned int step_failed;
+    unsigned int signal_total;
+} BeguileStats;
+
 typedef void (* BeguileHook)(BeguileHookType type, int is_child);
 
 typedef struct {
@@ -31,5 +41,5 @@ typedef struct {
     char          **user_tags;
 } BeguileGlobalVars;
 
-BeguileGlobalVars beguile_global_vars = {1, 1, NULL};
+BeguileGlobalVars beguile_global_vars = {1, 1, NULL, NULL};
 

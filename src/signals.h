@@ -6,7 +6,7 @@ void beguile_signal_handler(int signal)
     _exit(EXIT_FAILURE);
 }
 
-#define BEGUILE_REGISTER_SIGNAL_HANDLER                                                                               \
+#define BEGUILE_REGISTER_SIGNAL_HANDLER()                                                                               \
     do {                                                                                                              \
         struct sigaction beguile_sigaction;                                                                           \
         sigemptyset(&beguile_sigaction.sa_mask);                                                                      \
@@ -19,3 +19,4 @@ void beguile_signal_handler(int signal)
             }                                                                                                         \
         }                                                                                                             \
     } while(0)
+

@@ -1,6 +1,6 @@
 #define BEGUILE_REAL_TAGS(line, ...) \
     char * BEGUILE_CONCAT(beguile_tags_, line) [] = {__VA_ARGS__, NULL}; \
-    beguile_feature_vars.last_tags = BEGUILE_CONCAT(beguile_tags_, line);
+    beguile_internal_vars.last_tags = BEGUILE_CONCAT(beguile_tags_, line);
 
 #define BEGUILE_TAGS(...) BEGUILE_REAL_TAGS(__LINE__, __VA_ARGS__)
 
@@ -33,9 +33,9 @@ int beguile_last_tags_match_all_user_tags_match(char **last_tags)
 }
 
 #define BEGUILE_CHECK_TAGS() \
-    if (!beguile_last_tags_match_all_user_tags_match(beguile_feature_vars.last_tags)) { \
-        beguile_feature_vars.last_tags = NULL;                                 \
+    if (!beguile_last_tags_match_all_user_tags_match(beguile_internal_vars.last_tags)) { \
+        beguile_internal_vars.last_tags = NULL;                                 \
         break;                                                                 \
     } else                                                                     \
-        beguile_feature_vars.last_tags = NULL;
+        beguile_internal_vars.last_tags = NULL;
 
