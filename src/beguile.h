@@ -1,6 +1,6 @@
 /* Beguile 0.2.0, a BDD framework for C
  *
- * Compiled on 2015-05-02 12:58:37 with support for
+ * Compiled on 2015-05-03 18:20:24 with support for
  *   (x) English language
  *   (x) Spanish language
  *
@@ -178,7 +178,8 @@ typedef struct {
     jmp_buf        jmp_buf;
     pid_t          pid;
     int            pipe[2];
-    char         **last_tags;
+    int            tags_index;
+    char         **tags[2];
 } BeguileInternalVars;
 
 #define beguile_enable_hook(function) beguile_global_vars.hook = function
@@ -194,7 +195,9 @@ typedef struct {
     BeguileStats beguile_stats = {0, 0, 0, 0, 0, 0, 0};                        \
     BeguileInternalFlags beguile_internal_flags = {0, 0, 0, 0, 0, 0};          \
     BeguileInternalVars beguile_internal_vars;                                 \
-    beguile_internal_vars.last_tags = NULL;                                    \
+    beguile_internal_vars.tags_index = 0;                                      \
+    beguile_internal_vars.tags[0] = NULL;                                      \
+    beguile_internal_vars.tags[1] = NULL;                                      \
     BEGUILE_REGISTER_SIGNAL_HANDLER();
 
 #define BEGUILE_SUMMARY_COMPONENT(component, total, failed)                    \
@@ -231,7 +234,7 @@ typedef struct {
 
 #define BEGUILE_FEATURE(feature_keyword, feature_name)                         \
     do {                                                                       \
-        BEGUILE_CHECK_TAGS();                                                  \
+        beguile_internal_vars.tags_index = 1;                                  \
         BEGUILE_TRIGGER_HOOK(BEGUILE_HOOK_BEFORE_FEATURE, 0);                  \
         ++beguile_stats.feature_total;                                         \
         beguile_internal_flags.feature_has_failed = 0;                         \
@@ -248,7 +251,9 @@ typedef struct {
 #define BEGUILE_ENDFEATURE                                                     \
         if (beguile_internal_flags.feature_has_failed) ++beguile_stats.feature_failed;  \
         BEGUILE_TRIGGER_HOOK(BEGUILE_HOOK_AFTER_FEATURE, 0);                   \
-    } while(0);
+        beguile_internal_vars.tags_index = 0;                                  \
+        beguile_internal_vars.tags[0] = NULL;                                  \
+    } while (0);
 
 #define BEGUILE_FEATURE_INTRO(intro_keyword, text)                             \
     if (beguile_internal_flags.need_eol) {                                     \
@@ -286,7 +291,7 @@ typedef struct {
 
 #define BEGUILE_SCENARIO(scenario_keyword, scenario_name)                      \
     do {                                                                       \
-        BEGUILE_CHECK_TAGS();                                                  \
+        BEGUILE_CHECK_SCENARIO_TAGS();                                         \
         ++beguile_stats.scenario_total;                                        \
         beguile_internal_flags.scenario_has_failed = 0;                        \
         if (beguile_global_vars.fork_enabled) {                                \
@@ -360,7 +365,7 @@ typedef struct {
             beguile_internal_flags.feature_has_failed = 1;                     \
         }                                                                      \
         BEGUILE_TRIGGER_HOOK(BEGUILE_HOOK_AFTER_SCENARIO, 0);                  \
-    } while(0);
+    } while(0);                                                                \
 
 #define BEGUILE_STEP(step_keyword, sentence, statement)                        \
     BEGUILE_MESSAGE_PARENT("s");                                               \
@@ -442,21 +447,23 @@ typedef struct {
         BEGUILE_PARSE_TAGS(argc, argv);                                        \
     } while (0);
 
-#define BEGUILE_REAL_TAGS(line, ...) \
-    char * BEGUILE_CONCAT(beguile_tags_, line) [] = {__VA_ARGS__, NULL}; \
-    beguile_internal_vars.last_tags = BEGUILE_CONCAT(beguile_tags_, line);
+#define BEGUILE_REAL_TAG(line, ...)                                           \
+    do {                                                                       \
+        static char * BEGUILE_CONCAT(beguile_tags_, line) [] = {__VA_ARGS__, NULL}; \
+        beguile_internal_vars.tags[beguile_internal_vars.tags_index] = BEGUILE_CONCAT(beguile_tags_, line); \
+    } while (0);
 
-#define BEGUILE_TAGS(...) BEGUILE_REAL_TAGS(__LINE__, __VA_ARGS__)
+#define tag(...) BEGUILE_REAL_TAG(__LINE__, __VA_ARGS__)
 
-#define tags(...) BEGUILE_TAGS(__VA_ARGS__)
-
-#define BEGUILE_REAL_SET_TAGS(line, ...) \
-    char * BEGUILE_CONCAT(beguile_set_tags_, line) [] = {__VA_ARGS__, NULL}; \
-    beguile_global_vars.user_tags = BEGUILE_CONCAT(beguile_set_tags_, line)
+#define BEGUILE_REAL_SET_TAGS(line, ...)                                       \
+    do {                                                                       \
+        static char * BEGUILE_CONCAT(beguile_set_tags_, line) [] = {__VA_ARGS__, NULL}; \
+        beguile_global_vars.user_tags = BEGUILE_CONCAT(beguile_set_tags_, line); \
+    } while (0)
 
 #define beguile_set_tags(...) BEGUILE_REAL_SET_TAGS(__LINE__, __VA_ARGS__)
 
-int beguile_last_tags_match_all_user_tags_match(char **last_tags)
+int beguile_tags_match_user_tags(char **tags)
 {
     char **tag;
     char **user_tag = beguile_global_vars.user_tags;
@@ -464,7 +471,7 @@ int beguile_last_tags_match_all_user_tags_match(char **last_tags)
 
     while (user_tag != NULL && *user_tag != NULL) {
         user_tag_found = 0;
-        for (tag = last_tags; tag != NULL && *tag != NULL; ++tag) {
+        for (tag = tags; tag != NULL && *tag != NULL; ++tag) {
             if (strcmp(*user_tag, *tag) == 0) {
                 user_tag_found = 1;
                 break;
@@ -476,12 +483,23 @@ int beguile_last_tags_match_all_user_tags_match(char **last_tags)
     return 1;
 }
 
-#define BEGUILE_CHECK_TAGS() \
-    if (!beguile_last_tags_match_all_user_tags_match(beguile_internal_vars.last_tags)) { \
-        beguile_internal_vars.last_tags = NULL;                                 \
-        break;                                                                 \
-    } else                                                                     \
-        beguile_internal_vars.last_tags = NULL;
+#define BEGUILE_CHECK_SCENARIO_TAGS()                                          \
+    if (beguile_global_vars.user_tags != NULL) {                               \
+        if (beguile_internal_vars.tags[1] != NULL) {                           \
+            if (!beguile_tags_match_user_tags(beguile_internal_vars.tags[1])) { \
+                beguile_internal_vars.tags[1] = NULL;                          \
+                break;                                                         \
+            } else {                                                           \
+                beguile_internal_vars.tags[1] = NULL;                          \
+            }                                                                  \
+        } else if (beguile_internal_vars.tags[0] != NULL) {                    \
+            if (!beguile_tags_match_user_tags(beguile_internal_vars.tags[0])) { \
+                break;                                                         \
+            }                                                                  \
+        } else {                                                               \
+            break;                                                             \
+        }                                                                      \
+    }
 
 #ifndef BEGUILE_LANG_ES
 

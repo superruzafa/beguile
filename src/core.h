@@ -13,7 +13,8 @@ typedef struct {
     jmp_buf        jmp_buf;
     pid_t          pid;
     int            pipe[2];
-    char         **last_tags;
+    int            tags_index;
+    char         **tags[2];
 } BeguileInternalVars;
 
 #define beguile_enable_hook(function) beguile_global_vars.hook = function
@@ -29,7 +30,9 @@ typedef struct {
     BeguileStats beguile_stats = {0, 0, 0, 0, 0, 0, 0};                        \
     BeguileInternalFlags beguile_internal_flags = {0, 0, 0, 0, 0, 0};          \
     BeguileInternalVars beguile_internal_vars;                                 \
-    beguile_internal_vars.last_tags = NULL;                                    \
+    beguile_internal_vars.tags_index = 0;                                      \
+    beguile_internal_vars.tags[0] = NULL;                                      \
+    beguile_internal_vars.tags[1] = NULL;                                      \
     BEGUILE_REGISTER_SIGNAL_HANDLER();
 
 #define BEGUILE_SUMMARY_COMPONENT(component, total, failed)                    \
@@ -66,7 +69,7 @@ typedef struct {
 
 #define BEGUILE_FEATURE(feature_keyword, feature_name)                         \
     do {                                                                       \
-        BEGUILE_CHECK_TAGS();                                                  \
+        beguile_internal_vars.tags_index = 1;                                  \
         BEGUILE_TRIGGER_HOOK(BEGUILE_HOOK_BEFORE_FEATURE, 0);                  \
         ++beguile_stats.feature_total;                                         \
         beguile_internal_flags.feature_has_failed = 0;                         \
@@ -83,7 +86,9 @@ typedef struct {
 #define BEGUILE_ENDFEATURE                                                     \
         if (beguile_internal_flags.feature_has_failed) ++beguile_stats.feature_failed;  \
         BEGUILE_TRIGGER_HOOK(BEGUILE_HOOK_AFTER_FEATURE, 0);                   \
-    } while(0);
+        beguile_internal_vars.tags_index = 0;                                  \
+        beguile_internal_vars.tags[0] = NULL;                                  \
+    } while (0);
 
 #define BEGUILE_FEATURE_INTRO(intro_keyword, text)                             \
     if (beguile_internal_flags.need_eol) {                                     \
@@ -121,7 +126,7 @@ typedef struct {
 
 #define BEGUILE_SCENARIO(scenario_keyword, scenario_name)                      \
     do {                                                                       \
-        BEGUILE_CHECK_TAGS();                                                  \
+        BEGUILE_CHECK_SCENARIO_TAGS();                                         \
         ++beguile_stats.scenario_total;                                        \
         beguile_internal_flags.scenario_has_failed = 0;                        \
         if (beguile_global_vars.fork_enabled) {                                \
@@ -195,7 +200,7 @@ typedef struct {
             beguile_internal_flags.feature_has_failed = 1;                     \
         }                                                                      \
         BEGUILE_TRIGGER_HOOK(BEGUILE_HOOK_AFTER_SCENARIO, 0);                  \
-    } while(0);
+    } while(0);                                                                \
 
 #define BEGUILE_STEP(step_keyword, sentence, statement)                        \
     BEGUILE_MESSAGE_PARENT("s");                                               \
