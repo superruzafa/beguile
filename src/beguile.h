@@ -165,6 +165,8 @@ void beguile_signal_handler(int signal)
 
 typedef struct {
     int need_eol;
+    int feature_enabled;
+    int feature_printed;
     int feature_has_failed;
     int scenario_has_failed;
     int background_enabled;
@@ -174,6 +176,7 @@ typedef struct {
 
 typedef struct {
     int            written_bytes;
+    void          *feature_section;
     void          *background_section;
     jmp_buf        jmp_buf;
     pid_t          pid;
@@ -193,7 +196,7 @@ typedef struct {
 
 #define FeatureRunnerHeader \
     BeguileStats beguile_stats = {0, 0, 0, 0, 0, 0, 0};                        \
-    BeguileInternalFlags beguile_internal_flags = {0, 0, 0, 0, 0, 0};          \
+    BeguileInternalFlags beguile_internal_flags = {0, 0, 0, 0, 0, 0, 0};       \
     BeguileInternalVars beguile_internal_vars;                                 \
     beguile_internal_vars.tags_index = 0;                                      \
     beguile_internal_vars.tags[0] = NULL;                                      \
@@ -232,21 +235,33 @@ typedef struct {
         FeatureRunnerFooter                                                    \
     }
 
-#define BEGUILE_FEATURE(feature_keyword, feature_name)                         \
+#define BEGUILE_REAL_FEATURE(feature_keyword, feature_name, line)              \
     do {                                                                       \
+        beguile_internal_flags.feature_enabled = 0;                            \
+        beguile_internal_flags.feature_printed = 0;                            \
+        BEGUILE_CONCAT(beguile_feature_, line):;                               \
+        beguile_internal_vars.feature_section = && BEGUILE_CONCAT(beguile_feature_, line); \
+        if (beguile_internal_flags.feature_enabled) {                          \
+            if (beguile_internal_flags.need_eol) {                             \
+                BEGUILE_EOL();                                                 \
+                beguile_internal_flags.need_eol = 0;                           \
+            }                                                                  \
+            beguile_internal_flags.need_eol = 1;                               \
+            BEGUILE_PRINT(BEGUILE_STYLE_FEATURE(feature_keyword ":") " " feature_name); \
+            BEGUILE_FLUSH();                                                   \
+            BEGUILE_TRIGGER_HOOK(BEGUILE_HOOK_BEFORE_FEATURE, 0);              \
+            beguile_internal_flags.feature_printed = 1;                        \
+            ++beguile_stats.feature_total;                                     \
+            longjmp(beguile_internal_vars.jmp_buf, 1);                         \
+        }                                                                      \
+        beguile_internal_flags.feature_enabled = 1;                            \
         beguile_internal_vars.tags_index = 1;                                  \
-        BEGUILE_TRIGGER_HOOK(BEGUILE_HOOK_BEFORE_FEATURE, 0);                  \
-        ++beguile_stats.feature_total;                                         \
         beguile_internal_flags.feature_has_failed = 0;                         \
         beguile_internal_flags.background_printed = 0;                         \
         beguile_internal_vars.background_section = NULL;                       \
-        if (beguile_internal_flags.need_eol) {                                 \
-            BEGUILE_EOL();                                                     \
-            beguile_internal_flags.need_eol = 0;                               \
-        }                                                                      \
-        beguile_internal_flags.need_eol = 1;                                   \
-        BEGUILE_PRINT(BEGUILE_STYLE_FEATURE(feature_keyword ":") " " feature_name); \
-        BEGUILE_FLUSH();
+
+#define BEGUILE_FEATURE(feature_keyword, feature_name)                         \
+    BEGUILE_REAL_FEATURE(feature_keyword, feature_name, __LINE__)
 
 #define BEGUILE_ENDFEATURE                                                     \
         if (beguile_internal_flags.feature_has_failed) ++beguile_stats.feature_failed;  \
@@ -292,6 +307,8 @@ typedef struct {
 #define BEGUILE_SCENARIO(scenario_keyword, scenario_name)                      \
     do {                                                                       \
         BEGUILE_CHECK_SCENARIO_TAGS();                                         \
+        if (!beguile_internal_flags.feature_printed && !setjmp(beguile_internal_vars.jmp_buf)) \
+            goto *beguile_internal_vars.feature_section;                       \
         ++beguile_stats.scenario_total;                                        \
         beguile_internal_flags.scenario_has_failed = 0;                        \
         if (beguile_global_vars.fork_enabled) {                                \
@@ -455,13 +472,14 @@ typedef struct {
 
 #define tag(...) BEGUILE_REAL_TAG(__LINE__, __VA_ARGS__)
 
-#define BEGUILE_REAL_SET_TAGS(line, ...)                                       \
+#define BEGUILE_REAL_ENABLE_TAG(line, ...)                                       \
     do {                                                                       \
         static char * BEGUILE_CONCAT(beguile_set_tags_, line) [] = {__VA_ARGS__, NULL}; \
         beguile_global_vars.user_tags = BEGUILE_CONCAT(beguile_set_tags_, line); \
     } while (0)
 
-#define beguile_set_tags(...) BEGUILE_REAL_SET_TAGS(__LINE__, __VA_ARGS__)
+#define beguile_enable_tag(...) BEGUILE_REAL_ENABLE_TAG(__LINE__, __VA_ARGS__)
+#define beguile_disable_tag() beguile_global_vars.user_tags = NULL
 
 int beguile_tags_match_user_tags(char **tags)
 {

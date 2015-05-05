@@ -6,13 +6,14 @@
 
 #define tag(...) BEGUILE_REAL_TAG(__LINE__, __VA_ARGS__)
 
-#define BEGUILE_REAL_SET_TAGS(line, ...)                                       \
+#define BEGUILE_REAL_ENABLE_TAG(line, ...)                                       \
     do {                                                                       \
         static char * BEGUILE_CONCAT(beguile_set_tags_, line) [] = {__VA_ARGS__, NULL}; \
         beguile_global_vars.user_tags = BEGUILE_CONCAT(beguile_set_tags_, line); \
     } while (0)
 
-#define beguile_set_tags(...) BEGUILE_REAL_SET_TAGS(__LINE__, __VA_ARGS__)
+#define beguile_enable_tag(...) BEGUILE_REAL_ENABLE_TAG(__LINE__, __VA_ARGS__)
+#define beguile_disable_tag() beguile_global_vars.user_tags = NULL
 
 int beguile_tags_match_user_tags(char **tags)
 {
