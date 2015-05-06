@@ -1,0 +1,77 @@
+<%
+  tests = [
+    # test name,  value, expected, should_fail
+    ['should_be',                       '1',         'should_be(1)',                       '2'],
+    ['should_not_be',                   '1',         'should_not_be(2)',                   '2'],
+    ['should_be_equal_to',              '1',         'should_be_equal_to(1)',              '2'],
+    ['should_not_be_equal_to',          '1',         'should_not_be_equal_to(2)',          '2'],
+    ['should_be_less_than',             '5',         'should_be_less_than(10)',            '20'],
+    ['should_be_less_or_equal_than',    '5',         'should_be_less_or_equal_than(5)',    '10'],
+    ['should_be_greater_than',          '9',         'should_be_greater_than(5)',          '3'],
+    ['should_be_greater_or_equal_than', '5',         'should_be_greater_or_equal_than(5)', '3'],
+    ['should_be_null',                  'NULL',      'should_be_null',                     '(void *)1'],
+    ['should_not_be_null',              '(void *)1', 'should_not_be_null',                 'NULL']
+  ]
+%>
+
+#include <check.h>
+#include <beguile.h>
+
+<% tests.each do |test| %>
+START_TEST(test_<%= test[0] %>)
+{
+    FeatureRunnerHeader
+    Feature ("")
+        Scenario ("")
+            Then (<%= test[1] %> <%= test[2] %>)
+        EndScenario
+    EndFeature
+
+    ck_assert_int_eq(beguile_stats.feature_total, 1);
+    ck_assert_int_eq(beguile_stats.feature_failed, 0);
+    ck_assert_int_eq(beguile_stats.scenario_total, 1);
+    ck_assert_int_eq(beguile_stats.scenario_failed, 0);
+    ck_assert_int_eq(beguile_stats.step_total, 1);
+    ck_assert_int_eq(beguile_stats.step_failed, 0);
+}
+END_TEST
+
+START_TEST(test_<%= test[0] %>_fail)
+{
+    FeatureRunnerHeader
+    Feature ("")
+        Scenario ("")
+            Then (<%= test[3] %> <%= test[2] %>)
+        EndScenario
+    EndFeature
+
+    ck_assert_int_eq(beguile_stats.feature_total, 1);
+    ck_assert_int_eq(beguile_stats.feature_failed, 1);
+    ck_assert_int_eq(beguile_stats.scenario_total, 1);
+    ck_assert_int_eq(beguile_stats.scenario_failed, 1);
+    ck_assert_int_eq(beguile_stats.step_total, 1);
+    ck_assert_int_eq(beguile_stats.step_failed, 1);
+}
+END_TEST
+
+<% end %>
+
+int main(int argc, char **argv)
+{
+    beguile_disable_output();
+
+    Suite *suite = suite_create("Asserts");
+    TCase *tcase = tcase_create("Asserts");
+    suite_add_tcase(suite, tcase);
+
+    <% tests.each do |test| %>
+    tcase_add_test(tcase, test_<%= test[0] %>);
+    tcase_add_test(tcase, test_<%= test[0] %>_fail);
+    <% end %>
+
+    SRunner *runner = srunner_create(suite);
+    srunner_run_all(runner, CK_VERBOSE);
+    int test_failed = srunner_ntests_failed(runner);
+    srunner_free(runner);
+    return (test_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+}

@@ -31,7 +31,7 @@ typedef struct {
 
 #define FeatureRunnerHeader \
     BeguileStats beguile_stats = {0, 0, 0, 0, 0, 0, 0};                        \
-    BeguileInternalFlags beguile_internal_flags = {0, 0, 0, 0, 0, 0, 0};       \
+    volatile BeguileInternalFlags beguile_internal_flags = {0, 0, 0, 0, 0, 0, 0}; \
     BeguileInternalVars beguile_internal_vars;                                 \
     beguile_internal_vars.tags_index = 0;                                      \
     beguile_internal_vars.tags[0] = NULL;                                      \
@@ -84,11 +84,11 @@ typedef struct {
             beguile_internal_flags.need_eol = 1;                               \
             BEGUILE_PRINT(BEGUILE_STYLE_FEATURE(feature_keyword ":") " " feature_name); \
             BEGUILE_FLUSH();                                                   \
-            BEGUILE_TRIGGER_HOOK(BEGUILE_HOOK_BEFORE_FEATURE, 0);              \
             beguile_internal_flags.feature_printed = 1;                        \
-            ++beguile_stats.feature_total;                                     \
             longjmp(beguile_internal_vars.jmp_buf, 1);                         \
         }                                                                      \
+        BEGUILE_TRIGGER_HOOK(BEGUILE_HOOK_BEFORE_FEATURE, 0);                  \
+        ++beguile_stats.feature_total;                                         \
         beguile_internal_flags.feature_enabled = 1;                            \
         beguile_internal_vars.tags_index = 1;                                  \
         beguile_internal_flags.feature_has_failed = 0;                         \

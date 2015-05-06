@@ -553,6 +553,9 @@ uninstall-am:
 	uninstall-am
 
 
+%.c: %.erb
+	erb -T - $^ > $@
+
 $(top_builddir)/src/beguile.h: .FORCE
 	$(MAKE) -C $(top_builddir)/src
 

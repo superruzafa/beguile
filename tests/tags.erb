@@ -1,0 +1,86 @@
+<%
+  tests = [
+    # test name,  user tag, feature tag, scenario tag, expectations
+    ['user_untagged__feature_untagged__scenario_untagged', false, false, false, 'ABCD'],
+    ['user_foo__feature_untagged__scenario_untagged',      'foo', false, false, '....'],
+
+    ['user_untagged__feature_untagged__scenario_foo',      false, false, 'foo', 'ABCD'],
+    ['user_untagged__feature_foo__scenario_untagged',      false, 'foo', false, 'ABCD'],
+    ['user_untagged__feature_foo__scenario_foo',           false, 'foo', 'foo', 'ABCD'],
+    ['user_foo__feature_untagged__scenario_foo',           'foo', false, 'foo', 'A.C.'],
+    ['user_foo__feature_foo__scenario_untagged',           'foo', 'foo', false, 'AB..'],
+    ['user_foo__feature_foo__scenario_foo',                'foo', 'foo', 'foo', 'ABC.'],
+
+    ['user_untagged__feature_untagged__scenario_bar',      false, false, 'bar', 'ABCD'],
+    ['user_untagged__feature_bar__scenario_untagged',      false, 'bar', false, 'ABCD'],
+    ['user_untagged__feature_bar__scenario_bar',           false, 'bar', 'bar', 'ABCD'],
+    ['user_foo__feature_untagged__scenario_bar',           'foo', false, 'bar', '....'],
+    ['user_foo__feature_bar__scenario_untagged',           'foo', 'bar', false, '....'],
+    ['user_foo__feature_bar__scenario_bar',                'foo', 'bar', 'bar', '....'],
+
+    ['user_untagged__feature_untagged__scenario_foobar',   false, false,        'foo", "bar', 'ABCD'],
+    ['user_untagged__feature_foobar__scenario_untagged',   false, 'foo", "bar', false,        'ABCD'],
+    ['user_untagged__feature_foobar__scenario_foobar',     false, 'foo", "bar', 'foo", "bar', 'ABCD'],
+    ['user_foo__feature_untagged__scenario_foobar',        'foo', false,        'foo", "bar', 'A.C.'],
+    ['user_foo__feature_foobar__scenario_untagged',        'foo', 'foo", "bar', false,        'AB..'],
+    ['user_foo__feature_foobar__scenario_foobar',          'foo', 'foo", "bar', 'foo", "bar', 'ABC.']
+  ]
+%>
+
+#include <check.h>
+#include <beguile.h>
+
+<% tests.each do |test| %>
+START_TEST(<%= test[0] %>)
+{
+    char trace[] = "....";
+    <% if test[1] %>beguile_enable_tag("<%= test[1] %>");<% end %>
+
+    FeatureRunnerHeader
+
+    <% if test[2] %>tag("<%= test[2] %>");<% end %>
+    Feature ("")
+        <% if test[3] %>tag("<%= test[3] %>");<% end %>
+        Scenario ("")
+            trace[0] = 'A';
+        EndScenario
+
+        Scenario ("")
+            trace[1] = 'B';
+        EndScenario
+    EndFeature
+
+    Feature ("")
+        <% if test[3] %>tag("<%= test[3] %>");<% end %>
+        Scenario ("")
+            trace[2] = 'C';
+        EndScenario
+
+        Scenario ("")
+            trace[3] = 'D';
+        EndScenario
+    EndFeature
+    ck_assert_str_eq(trace, "<%= test[4] %>");
+}
+END_TEST
+<% end %>
+
+int main(int argc, char **argv)
+{
+    beguile_disable_output();
+    beguile_disable_fork();
+
+    Suite *suite = suite_create("Tags");
+    TCase *tcase = tcase_create("Tags");
+    suite_add_tcase(suite, tcase);
+
+    <% tests.each do |test| -%>
+    tcase_add_test(tcase, <%= test[0] %>);
+    <% end %>
+
+    SRunner *runner = srunner_create(suite);
+    srunner_run_all(runner, CK_VERBOSE);
+    int test_failed = srunner_ntests_failed(runner);
+    srunner_free(runner);
+    return (test_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+}

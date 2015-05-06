@@ -7,6 +7,9 @@ check_PROGRAMS = asserts backgrounds hooks fork options tags_
 
 tags__SOURCES = tags.c
 
+%.c: %.erb
+	erb -T - $^ > $@
+
 $(top_builddir)/src/beguile.h: .FORCE
 	$(MAKE) -C $(top_builddir)/src
 
