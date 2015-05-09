@@ -1,6 +1,8 @@
 /* Beguile 0.2.0, a BDD framework for C
  *
  * Compiled on @DATE@ with support for
+ *   (@SUPPORT_OPTIONS@) Command line options
+ *   (@SUPPORT_TAGS@) Tags
  *   (@SUPPORT_EN@) English language
  *   (@SUPPORT_ES@) Spanish language
  *

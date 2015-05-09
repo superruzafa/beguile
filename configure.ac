@@ -10,6 +10,7 @@ AC_CONFIG_MACRO_DIR([m4])
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_RANLIB
+AC_CHECK_PROG([ERB], [erb], [yes], [no])
 
 # Checks for libraries.
 
@@ -20,20 +21,35 @@ AC_PROG_RANLIB
 # Checks for library functions.
 AC_ARG_WITH([tests], AS_HELP_STRING([--without-tests], [Disable tests]))
 AS_IF([test "x$with_tests" != "xno"], [
-    PKG_CHECK_MODULES([CHECK], [check], [], [AC_MSG_ERROR([No package 'check' found. Install check package or try ./configure --without-tests])])
+    PKG_CHECK_MODULES([CHECK], [check], [], [AC_MSG_ERROR([No package 'check' found. Install `check` package or try ./configure --without-tests])])
+    AS_IF([test "x$ERB" != "xyes"], [AC_MSG_ERROR([No program 'erb' found. Install `erb` program or try ./configure --without-tests])])
 ])
 
 DATE=`date +"%Y-%m-%d %H:%M:%S"`
 AC_SUBST([DATE])
 
 # Beguile modules
-MODULES="info.h header.h package.h util.h style.h signals.h core.h options.h tags.h"
+MODULES="info.h header.h package.h util.h style.h signals.h core.h"
+
+AC_ARG_ENABLE([options], AS_HELP_STRING([--disable-options], [Disable command line options]))
+AS_IF([test "x$enable_options" != "xno"], [
+    MODULES="$MODULES options.h"
+    SUPPORT_OPTIONS=x
+], [SUPPORT_OPTIONS=" "])
+AC_SUBST([SUPPORT_OPTIONS])
+
+AC_ARG_ENABLE([tags], AS_HELP_STRING([--disable-tags], [Disable tags]))
+AS_IF([test "x$enable_tags" != "xno"], [
+    MODULES="$MODULES tags.h"
+    SUPPORT_TAGS=x
+], [SUPPORT_TAGS=" "])
+AC_SUBST([SUPPORT_TAGS])
 
 AC_ARG_ENABLE([english], AS_HELP_STRING([--disable-english], [Disable english language]))
 AS_IF([test "x$enable_english" != "xno"], [
     MODULES="$MODULES lang_en.h"
     SUPPORT_EN=x
-], SUPPORT_EN="x")
+], [SUPPORT_EN=" "])
 AC_SUBST([SUPPORT_EN])
 
 AC_ARG_ENABLE([spanish], AS_HELP_STRING([--enable-spanish], [Enable spanish language]))
