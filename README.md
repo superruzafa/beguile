@@ -16,6 +16,8 @@ Beguile is, in essence, a collection of C macros to write simple, concise and be
 
 Download the last [Beguile](https://raw.githubusercontent.com/superruzafa/beguile/master/release/beguile.h) stable version.
 
+Please, read the [documentation](wiki/1---Getting-started) to learn how to use Beguile.
+
 ```c
 #include "beguile.h"
 
