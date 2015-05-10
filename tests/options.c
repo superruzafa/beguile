@@ -56,7 +56,7 @@ START_TEST(test_no_tags)
     char *argv[] = {"options"};
     beguile_global_vars.user_tags = NULL;
     beguile_parse_options(1, argv);
-    ck_assert_int_eq(beguile_global_vars.user_tags[0], 0);
+    ck_assert(beguile_global_vars.user_tags == NULL);
 }
 END_TEST
 

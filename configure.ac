@@ -3,12 +3,13 @@
 
 AC_PREREQ([2.68])
 AC_INIT([Beguile], [0.2.0], [superruzafa@gmail.com], [beguile], [https://github.com/superruzafa/beguile.git])
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([subdir-objects])
 AC_CONFIG_SRCDIR([src/package.h.in])
 AC_CONFIG_MACRO_DIR([m4])
 
 # Checks for programs.
 AC_PROG_CC
+AM_PROG_CC_C_O
 AC_PROG_RANLIB
 AC_CHECK_PROG([ERB], [erb], [yes], [no])
 
@@ -71,8 +72,5 @@ AC_CONFIG_FILES([
     tests/Makefile
     release/Makefile
     examples/Makefile
-    examples/stack/Makefile
-    examples/hooks/Makefile
-    examples/i18n/Makefile
 ])
 AC_OUTPUT

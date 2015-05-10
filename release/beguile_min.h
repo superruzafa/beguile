@@ -1,3 +1,164 @@
+/* Beguile 0.2.0, a BDD framework for C
+ *
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2015 Alfonso Ruzafa
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+#ifndef __BEGUILE_H__
+#define __BEGUILE_H__
+
+#include <ctype.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <setjmp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <signal.h>
+#include <string.h>
+#include <unistd.h>
+
+typedef enum {
+    BEGUILE_HOOK_BEFORE_FEATURE,
+    BEGUILE_HOOK_AFTER_FEATURE,
+    BEGUILE_HOOK_BEFORE_BACKGROUND,
+    BEGUILE_HOOK_AFTER_BACKGROUND,
+    BEGUILE_HOOK_BEFORE_SCENARIO,
+    BEGUILE_HOOK_AFTER_SCENARIO,
+    BEGUILE_HOOK_BEFORE_STEP,
+    BEGUILE_HOOK_AFTER_STEP,
+} BeguileHookType;
+
+typedef struct {
+    unsigned int feature_total;
+    unsigned int feature_failed;
+    unsigned int scenario_total;
+    unsigned int scenario_failed;
+    unsigned int step_total;
+    unsigned int step_failed;
+    unsigned int signal_total;
+} BeguileStats;
+
+typedef void (* BeguileHook)(BeguileHookType type, int is_child);
+
+typedef struct {
+    int             output_enabled;
+    int             fork_enabled;
+    BeguileHook     hook;
+    char          **user_tags;
+} BeguileGlobalVars;
+
+BeguileGlobalVars beguile_global_vars = {1, 1, NULL, NULL};
+
+#define BEGUILE_NAME "Beguile"
+#define BEGUILE_VERSION "0.2.0"
+#define BEGUILE_AUTHOR "Alfonso Ruzafa"
+#define BEGUILE_EMAIL  "superruzafa@gmail.com"
+#define BEGUILE_BRAND "Beguile, a BDD framework for C"
+#define BEGUILE_URL "https://github.com/superruzafa/beguile.git"
+
+#define BEGUILE_PRINT(...) (beguile_global_vars.output_enabled ? printf(__VA_ARGS__) : 0)
+#define BEGUILE_FLUSH() (beguile_global_vars.output_enabled ? fflush(stdout) : 0)
+
+#define BEGUILE_PRETTY_PRINT(string)                                                                            \
+    do {                                                                                                        \
+        char *str = string;                                                                                     \
+        while (*str != '\0') {                                                                                  \
+            if (*str == ' ' || *str == '_' || *str == '(' || *str == ')') {                                     \
+                while (*str != '\0' && (*str == ' ' || *str == '_' || *str == '(' || *str == ')')) ++str;       \
+                if (*str != '\0') BEGUILE_PRINT(" ");                                                           \
+            } else {                                                                                            \
+                BEGUILE_PRINT("%c", *str);                                                                      \
+                ++str;                                                                                          \
+            }                                                                                                   \
+        }                                                                                                       \
+    } while(0)
+
+#define beguile_enable_output() beguile_global_vars.output_enabled = 1
+#define beguile_disable_output() beguile_global_vars.output_enabled = 0
+
+#define BEGUILE_EOL() BEGUILE_PRINT("\n")
+
+#define BEGUILE_CONCAT(a, b) a ## b
+
+#define BEGUILE_INDENT_1()  BEGUILE_PRINT("  ")
+#define BEGUILE_INDENT_2()  BEGUILE_PRINT("    ")
+#define BEGUILE_INDENT_3()  BEGUILE_PRINT("      ")
+
+#define BEGUILE_STYLE_RESET                 "\x1b[0m"
+#define BEGUILE_STYLE_BOLD                  "\x1b[1m"
+#define BEGUILE_STYLE_ITALIC                "\x1b[3m"
+#define BEGUILE_STYLE_UNDERLINE             "\x1b[4m"
+#define BEGUILE_STYLE_BLINK                 "\x1b[5m"
+#define BEGUILE_STYLE_STRIKETHROUGH         "\x1b[9m"
+#define BEGUILE_STYLE_FOREGROUND_BLACK      "\x1b[30m"
+#define BEGUILE_STYLE_FOREGROUND_RED        "\x1b[31m"
+#define BEGUILE_STYLE_FOREGROUND_GREEN      "\x1b[32m"
+#define BEGUILE_STYLE_FOREGROUND_YELLOW     "\x1b[33m"
+#define BEGUILE_STYLE_FOREGROUND_BLUE       "\x1b[34m"
+#define BEGUILE_STYLE_FOREGROUND_MAGENTA    "\x1b[35m"
+#define BEGUILE_STYLE_FOREGROUND_CYAN       "\x1b[36m"
+#define BEGUILE_STYLE_FOREGROUND_WHITE      "\x1b[37m"
+#define BEGUILE_STYLE_FOREGROUND_DEFAULT    "\x1b[38m"
+#define BEGUILE_STYLE_BACKGROUND_BLACK      "\x1b[40m"
+#define BEGUILE_STYLE_BACKGROUND_RED        "\x1b[41m"
+#define BEGUILE_STYLE_BACKGROUND_GREEN      "\x1b[42m"
+#define BEGUILE_STYLE_BACKGROUND_YELLOW     "\x1b[43m"
+#define BEGUILE_STYLE_BACKGROUND_BLUE       "\x1b[44m"
+#define BEGUILE_STYLE_BACKGROUND_MAGENTA    "\x1b[45m"
+#define BEGUILE_STYLE_BACKGROUND_CYAN       "\x1b[46m"
+#define BEGUILE_STYLE_BACKGROUND_WHITE      "\x1b[47m"
+#define BEGUILE_STYLE_BACKGROUND_DEFAULT    "\x1b[49m"
+
+#define BEGUILE_STYLE_KEYWORD(keyword)                  BEGUILE_STYLE_BOLD keyword BEGUILE_STYLE_RESET
+#define BEGUILE_STYLE_FEATURE(feature_keyword)          BEGUILE_STYLE_KEYWORD(feature_keyword)
+#define BEGUILE_STYLE_BACKGROUND(background_keyword)    BEGUILE_STYLE_KEYWORD(background_keyword)
+#define BEGUILE_STYLE_SCENARIO(scenario_keyword)        BEGUILE_STYLE_KEYWORD(scenario_keyword)
+#define BEGUILE_STYLE_STEP(step_keyword)                BEGUILE_STYLE_FOREGROUND_YELLOW step_keyword BEGUILE_STYLE_RESET
+
+#define BEGUILE_STYLE_SUCCESS(message)                  BEGUILE_STYLE_FOREGROUND_GREEN message BEGUILE_STYLE_RESET
+#define BEGUILE_STYLE_FAILURE(message)                  BEGUILE_STYLE_FOREGROUND_RED message BEGUILE_STYLE_RESET
+
+#define BEGUILE_SIGNALS SIGABRT, SIGFPE, SIGSEGV
+
+void beguile_signal_handler(int signal)
+{
+    BEGUILE_PRINT(" " BEGUILE_STYLE_FAILURE("%s") "\n", strsignal(signal));
+    _exit(EXIT_FAILURE);
+}
+
+#define BEGUILE_REGISTER_SIGNAL_HANDLER()                                                                               \
+    do {                                                                                                              \
+        struct sigaction beguile_sigaction;                                                                           \
+        sigemptyset(&beguile_sigaction.sa_mask);                                                                      \
+        beguile_sigaction.sa_handler = beguile_signal_handler;                                                        \
+        int beguile_signals[] = { BEGUILE_SIGNALS, 0 }, beguile_i;                                                    \
+        for (beguile_i = 0; beguile_signals[beguile_i] != 0; ++beguile_i) {                                           \
+            if (sigaction(beguile_signals[beguile_i], &beguile_sigaction, NULL) < 0) {                                \
+                BEGUILE_PRINT(BEGUILE_STYLE_FAILURE("Cannot set signal error handler for signal %d") "\n", beguile_signals[beguile_i]); \
+                exit(EXIT_FAILURE);                                                                                   \
+            }                                                                                                         \
+        }                                                                                                             \
+    } while(0)
+
 typedef struct {
     int need_eol;
     int feature_has_failed;
@@ -235,3 +396,53 @@ typedef struct {
 #define BEGUILE_ASSERT_SHOULD_BE_NULL                     == NULL ? BEGUILE_ASSERT_OK() : BEGUILE_ASSERT_FAIL()
 #define BEGUILE_ASSERT_SHOULD_NOT_BE_NULL                 != NULL ? BEGUILE_ASSERT_OK() : BEGUILE_ASSERT_FAIL()
 
+#ifndef BEGUILE_LANG_ES
+
+#define Feature(feature_name)                   BEGUILE_FEATURE("Feature", feature_name)
+#define EndFeature                              BEGUILE_ENDFEATURE
+
+#define As_a(role)                              BEGUILE_FEATURE_INTRO("As a", role)
+#define As_an(role)                             BEGUILE_FEATURE_INTRO("As an", role)
+#define I_want_to(feature)                      BEGUILE_FEATURE_INTRO("I want to", feature)
+#define I_want(feature)                         BEGUILE_FEATURE_INTRO("I want", feature)
+#define In_order_to(benefit)                    BEGUILE_FEATURE_INTRO("In order to", benefit)
+#define So_that(benefit)                        BEGUILE_FEATURE_INTRO("So that", benefit)
+
+#define Background                              BEGUILE_BACKGROUND("Background")
+#define EndBackground                           BEGUILE_ENDBACKGROUND
+
+#define Scenario(scenario_name)                 BEGUILE_SCENARIO("Scenario", scenario_name)
+#define EndScenario                             BEGUILE_ENDSCENARIO
+
+#define Given(...)                              BEGUILE_STEP("Given", #__VA_ARGS__, __VA_ARGS__)
+#define When(...)                               BEGUILE_STEP("When",  #__VA_ARGS__, __VA_ARGS__)
+#define Then(...)                               BEGUILE_STEP("Then",  #__VA_ARGS__, __VA_ARGS__)
+#define And(...)                                BEGUILE_STEP("And",   #__VA_ARGS__, __VA_ARGS__)
+#define But(...)                                BEGUILE_STEP("But",   #__VA_ARGS__, __VA_ARGS__)
+
+#define should_be_equal_to(x)                   BEGUILE_ASSERT_SHOULD_BE_EQUAL_TO(x)
+#define should_be(x)                            BEGUILE_ASSERT_SHOULD_BE_EQUAL_TO(x)
+#define should_not_be_equal_to(x)               BEGUILE_ASSERT_SHOULD_NOT_BE_EQUAL_TO(x)
+#define should_not_be(x)                        BEGUILE_ASSERT_SHOULD_NOT_BE_EQUAL_TO(x)
+#define should_be_less_than(x)                  BEGUILE_ASSERT_SHOULD_BE_LESS_THAN(x)
+#define should_be_less_or_equal_than(x)         BEGUILE_ASSERT_SHOULD_BE_LESS_OR_EQUAL_THAN(x)
+#define should_be_greater_than(x)               BEGUILE_ASSERT_SHOULD_BE_GREATER_THAN(x)
+#define should_be_greater_or_equal_than(x)      BEGUILE_ASSERT_SHOULD_BE_GREATER_OR_EQUAL_THAN(x)
+#define should_be_null                          BEGUILE_ASSERT_SHOULD_BE_NULL
+#define should_not_be_null                      BEGUILE_ASSERT_SHOULD_NOT_BE_NULL
+
+#define BEGUILE_MSG_OK                          "OK"
+#define BEGUILE_MSG_FAIL                        "FAIL"
+
+#define BEGUILE_MSG_SUMMARY_FEATURES            "%d features"
+#define BEGUILE_MSG_SUMMARY_SCENARIOS           "%d scenarios"
+#define BEGUILE_MSG_SUMMARY_STEPS               "%d steps"
+#define BEGUILE_MSG_SUMMARY_ALL_PASSED          "all passed"
+#define BEGUILE_MSG_SUMMARY_FAILED              "%d failed"
+
+#define BEGUILE_MSG_COULD_NOT_PIPE              "Couldn't create scenario pipe"
+#define BEGUILE_MSG_COULD_NOT_FORK              "Couldn't fork scenario subprocess"
+
+#endif
+
+#endif // __BEGUILE_H__

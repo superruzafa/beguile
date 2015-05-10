@@ -20,8 +20,8 @@
         beguile_tags_ptr += strlen(argv[optind]) + 1;                          \
         ++beguile_i;                                                           \
         ++optind;                                                              \
-    }                                                                          \
-    beguile_global_vars.user_tags = beguile_tags_argv;
+        beguile_global_vars.user_tags = beguile_tags_argv;                     \
+    }
 
 #define beguile_parse_options(argc, argv)                                      \
     do {                                                                       \
