@@ -32,7 +32,7 @@ NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
 EXTRA_PROGRAMS = hooks/hooks$(EXEEXT) i18n/spanish$(EXEEXT) \
-	stack/stack_feature$(EXEEXT)
+	stack/stack_feature$(EXEEXT) tags/tags_$(EXEEXT)
 subdir = examples
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -58,6 +58,9 @@ i18n_spanish_LDADD = $(LDADD)
 stack_stack_feature_SOURCES = stack/stack_feature.c
 stack_stack_feature_OBJECTS = stack/stack_feature.$(OBJEXT)
 stack_stack_feature_DEPENDENCIES = stack/libstack.a
+tags_tags__SOURCES = tags/tags_.c
+tags_tags__OBJECTS = tags/tags_.$(OBJEXT)
+tags_tags__LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -67,9 +70,9 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 SOURCES = $(stack_libstack_a_SOURCES) hooks/hooks.c i18n/spanish.c \
-	stack/stack_feature.c
+	stack/stack_feature.c tags/tags_.c
 DIST_SOURCES = $(stack_libstack_a_SOURCES) hooks/hooks.c \
-	i18n/spanish.c stack/stack_feature.c
+	i18n/spanish.c stack/stack_feature.c tags/tags_.c
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -170,7 +173,7 @@ top_srcdir = @top_srcdir@
 AM_CPPFLAGS = -I$(top_builddir)/release
 EXTRA_LIBRARIES = stack/libstack.a
 EXTRA_DIST = stack/stack_context.c
-CLEANFILES = hooks/hooks i18n/spanish stack/libstack.a stack/stack_feature
+CLEANFILES = hooks/hooks i18n/spanish stack/libstack.a stack/stack_feature tags/tags_
 stack_libstack_a_SOURCES = stack/stack.c
 stack_stack_feature_LDADD = stack/libstack.a
 all: all-am
@@ -246,6 +249,17 @@ stack/stack_feature.$(OBJEXT): stack/$(am__dirstamp) \
 stack/stack_feature$(EXEEXT): $(stack_stack_feature_OBJECTS) $(stack_stack_feature_DEPENDENCIES) $(EXTRA_stack_stack_feature_DEPENDENCIES) stack/$(am__dirstamp)
 	@rm -f stack/stack_feature$(EXEEXT)
 	$(LINK) $(stack_stack_feature_OBJECTS) $(stack_stack_feature_LDADD) $(LIBS)
+tags/$(am__dirstamp):
+	@$(MKDIR_P) tags
+	@: > tags/$(am__dirstamp)
+tags/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) tags/$(DEPDIR)
+	@: > tags/$(DEPDIR)/$(am__dirstamp)
+tags/tags_.$(OBJEXT): tags/$(am__dirstamp) \
+	tags/$(DEPDIR)/$(am__dirstamp)
+tags/tags_$(EXEEXT): $(tags_tags__OBJECTS) $(tags_tags__DEPENDENCIES) $(EXTRA_tags_tags__DEPENDENCIES) tags/$(am__dirstamp)
+	@rm -f tags/tags_$(EXEEXT)
+	$(LINK) $(tags_tags__OBJECTS) $(tags_tags__LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -253,6 +267,7 @@ mostlyclean-compile:
 	-rm -f i18n/spanish.$(OBJEXT)
 	-rm -f stack/stack.$(OBJEXT)
 	-rm -f stack/stack_feature.$(OBJEXT)
+	-rm -f tags/tags_.$(OBJEXT)
 
 distclean-compile:
 	-rm -f *.tab.c
@@ -261,6 +276,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@i18n/$(DEPDIR)/spanish.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@stack/$(DEPDIR)/stack.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@stack/$(DEPDIR)/stack_feature.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@tags/$(DEPDIR)/tags_.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
@@ -397,6 +413,8 @@ distclean-generic:
 	-rm -f i18n/$(am__dirstamp)
 	-rm -f stack/$(DEPDIR)/$(am__dirstamp)
 	-rm -f stack/$(am__dirstamp)
+	-rm -f tags/$(DEPDIR)/$(am__dirstamp)
+	-rm -f tags/$(am__dirstamp)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
@@ -406,7 +424,7 @@ clean: clean-am
 clean-am: clean-generic mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf hooks/$(DEPDIR) i18n/$(DEPDIR) stack/$(DEPDIR)
+	-rm -rf hooks/$(DEPDIR) i18n/$(DEPDIR) stack/$(DEPDIR) tags/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -452,7 +470,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf hooks/$(DEPDIR) i18n/$(DEPDIR) stack/$(DEPDIR)
+	-rm -rf hooks/$(DEPDIR) i18n/$(DEPDIR) stack/$(DEPDIR) tags/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
