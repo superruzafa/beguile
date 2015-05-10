@@ -1,6 +1,7 @@
-SUBDIRS = src tests examples
+SUBDIRS = src tests examples release
 
 examples:
-	$(MAKE) -C examples $@
+	$(MAKE) -C release
+	$(MAKE) -C $@ $@
 
 .PHONY: examples

@@ -1,7 +1,2 @@
-BUILT_SOURCES = beguile.h
-CLEANFILES = package.h
-DISTCLEANFILES = beguile.h
-EXTRA_DIST = beguile.h package.h core.h footer.h header.h lang_en.h signals.h style.h util.h
-
-beguile.h: $(MODULES)
-	cat $^ > $@
+DISTCLEANFILES = package.h info.h
+EXTRA_DIST = package.h info.h core.h footer.h header.h lang_en.h lang_es.h signals.h style.h options.h tags.h util.h

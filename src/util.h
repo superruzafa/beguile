@@ -1,5 +1,5 @@
 #define BEGUILE_PRINT(...) (beguile_global_vars.output_enabled ? printf(__VA_ARGS__) : 0)
-#define BEGUILE_FLUSH (beguile_global_vars.output_enabled ? fflush(stdout) : 0)
+#define BEGUILE_FLUSH() (beguile_global_vars.output_enabled ? fflush(stdout) : 0)
 
 #define BEGUILE_PRETTY_PRINT(string)                                                                            \
     do {                                                                                                        \
@@ -18,11 +18,11 @@
 #define beguile_enable_output() beguile_global_vars.output_enabled = 1
 #define beguile_disable_output() beguile_global_vars.output_enabled = 0
 
-#define BEGUILE_EOL BEGUILE_PRINT("\n")
+#define BEGUILE_EOL() BEGUILE_PRINT("\n")
 
 #define BEGUILE_CONCAT(a, b) a ## b
 
-#define BEGUILE_INDENT_1    BEGUILE_PRINT("  ")
-#define BEGUILE_INDENT_2    BEGUILE_PRINT("    ")
-#define BEGUILE_INDENT_3    BEGUILE_PRINT("      ")
+#define BEGUILE_INDENT_1()  BEGUILE_PRINT("  ")
+#define BEGUILE_INDENT_2()  BEGUILE_PRINT("    ")
+#define BEGUILE_INDENT_3()  BEGUILE_PRINT("      ")
 

@@ -32,9 +32,9 @@ NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
 TESTS = asserts$(EXEEXT) backgrounds$(EXEEXT) hooks$(EXEEXT) \
-	fork$(EXEEXT)
+	fork$(EXEEXT) options$(EXEEXT) tags_$(EXEEXT)
 check_PROGRAMS = asserts$(EXEEXT) backgrounds$(EXEEXT) hooks$(EXEEXT) \
-	fork$(EXEEXT)
+	fork$(EXEEXT) options$(EXEEXT) tags_$(EXEEXT)
 subdir = tests
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -44,18 +44,24 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(install_sh) -d
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-am_asserts_OBJECTS = asserts.$(OBJEXT)
-asserts_OBJECTS = $(am_asserts_OBJECTS)
-asserts_DEPENDENCIES =
-am_backgrounds_OBJECTS = backgrounds.$(OBJEXT)
-backgrounds_OBJECTS = $(am_backgrounds_OBJECTS)
-backgrounds_DEPENDENCIES =
-am_fork_OBJECTS = fork.$(OBJEXT)
-fork_OBJECTS = $(am_fork_OBJECTS)
-fork_DEPENDENCIES =
-am_hooks_OBJECTS = hooks.$(OBJEXT)
-hooks_OBJECTS = $(am_hooks_OBJECTS)
-hooks_DEPENDENCIES =
+asserts_SOURCES = asserts.c
+asserts_OBJECTS = asserts.$(OBJEXT)
+asserts_LDADD = $(LDADD)
+backgrounds_SOURCES = backgrounds.c
+backgrounds_OBJECTS = backgrounds.$(OBJEXT)
+backgrounds_LDADD = $(LDADD)
+fork_SOURCES = fork.c
+fork_OBJECTS = fork.$(OBJEXT)
+fork_LDADD = $(LDADD)
+hooks_SOURCES = hooks.c
+hooks_OBJECTS = hooks.$(OBJEXT)
+hooks_LDADD = $(LDADD)
+options_SOURCES = options.c
+options_OBJECTS = options.$(OBJEXT)
+options_LDADD = $(LDADD)
+am_tags__OBJECTS = tags.$(OBJEXT)
+tags__OBJECTS = $(am_tags__OBJECTS)
+tags__LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -64,10 +70,10 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(asserts_SOURCES) $(backgrounds_SOURCES) $(fork_SOURCES) \
-	$(hooks_SOURCES)
-DIST_SOURCES = $(asserts_SOURCES) $(backgrounds_SOURCES) \
-	$(fork_SOURCES) $(hooks_SOURCES)
+SOURCES = asserts.c backgrounds.c fork.c hooks.c options.c \
+	$(tags__SOURCES)
+DIST_SOURCES = asserts.c backgrounds.c fork.c hooks.c options.c \
+	$(tags__SOURCES)
 ETAGS = etags
 CTAGS = ctags
 am__tty_colors = \
@@ -91,6 +97,7 @@ DEPDIR = @DEPDIR@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
+ERB = @ERB@
 EXEEXT = @EXEEXT@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
@@ -99,11 +106,13 @@ INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
-LIBS = @LIBS@
+LIBS = @CHECK_LIBS@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
 MKDIR_P = @MKDIR_P@
 MODULES = @MODULES@
+MODULES_FULL = @MODULES_FULL@
+MODULES_MIN = @MODULES_MIN@
 OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
@@ -120,6 +129,7 @@ RANLIB = @RANLIB@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
+SUPPORT_OPTIONS = @SUPPORT_OPTIONS@
 VERSION = @VERSION@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
@@ -163,15 +173,9 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-AM_CPPFLAGS = -I$(top_builddir)/src @CHECK_CFLAGS@
-asserts_SOURCES = asserts.c
-asserts_LDADD = @CHECK_LIBS@
-backgrounds_SOURCES = backgrounds.c
-backgrounds_LDADD = @CHECK_LIBS@
-hooks_SOURCES = hooks.c
-hooks_LDADD = @CHECK_LIBS@
-fork_SOURCES = fork.c
-fork_LDADD = @CHECK_LIBS@
+AM_CPPFLAGS = -I$(top_builddir)/release @CHECK_CFLAGS@
+DISTCLEANFILES = asserts.c tags.c
+tags__SOURCES = tags.c
 all: all-am
 
 .SUFFIXES:
@@ -221,6 +225,12 @@ fork$(EXEEXT): $(fork_OBJECTS) $(fork_DEPENDENCIES) $(EXTRA_fork_DEPENDENCIES)
 hooks$(EXEEXT): $(hooks_OBJECTS) $(hooks_DEPENDENCIES) $(EXTRA_hooks_DEPENDENCIES) 
 	@rm -f hooks$(EXEEXT)
 	$(LINK) $(hooks_OBJECTS) $(hooks_LDADD) $(LIBS)
+options$(EXEEXT): $(options_OBJECTS) $(options_DEPENDENCIES) $(EXTRA_options_DEPENDENCIES) 
+	@rm -f options$(EXEEXT)
+	$(LINK) $(options_OBJECTS) $(options_LDADD) $(LIBS)
+tags_$(EXEEXT): $(tags__OBJECTS) $(tags__DEPENDENCIES) $(EXTRA_tags__DEPENDENCIES) 
+	@rm -f tags_$(EXEEXT)
+	$(LINK) $(tags__OBJECTS) $(tags__LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -232,20 +242,24 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/backgrounds.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fork.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hooks.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/options.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tags.Po@am__quote@
 
 .c.o:
-@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCC_TRUE@	depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
+@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
+@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(COMPILE) -c $<
+@am__fastdepCC_FALSE@	$(COMPILE) -c -o $@ $<
 
 .c.obj:
-@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCC_TRUE@	depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.obj$$||'`;\
+@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ `$(CYGPATH_W) '$<'` &&\
+@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(COMPILE) -c `$(CYGPATH_W) '$<'`
+@am__fastdepCC_FALSE@	$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
@@ -454,6 +468,7 @@ clean-generic:
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
+	-test -z "$(DISTCLEANFILES)" || rm -f $(DISTCLEANFILES)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
@@ -542,6 +557,9 @@ uninstall-am:
 	mostlyclean-generic pdf pdf-am ps ps-am tags uninstall \
 	uninstall-am
 
+
+%.c: %.erb
+	erb -T - $^ > $@
 
 $(top_builddir)/src/beguile.h: .FORCE
 	$(MAKE) -C $(top_builddir)/src
