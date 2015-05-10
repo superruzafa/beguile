@@ -1,5 +1,6 @@
-AM_CPPFLAGS = -I$(top_builddir)/src @CHECK_CFLAGS@
+AM_CPPFLAGS = -I$(top_builddir)/release @CHECK_CFLAGS@
 LIBS = @CHECK_LIBS@
+DISTCLEANFILES=asserts.c tags.c
 
 TESTS = asserts backgrounds hooks fork options tags_
 

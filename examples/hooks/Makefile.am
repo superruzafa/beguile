@@ -1,4 +1,4 @@
-AM_CPPFLAGS = -I$(top_builddir)/src
+AM_CPPFLAGS = -I$(top_builddir)/release
 EXTRA_PROGRAMS = hooks
 EXTRA_DIST = hooks.c
 CLEANFILES = hooks

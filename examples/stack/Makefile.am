@@ -1,4 +1,4 @@
-AM_CPPFLAGS = -I$(top_builddir)/src
+AM_CPPFLAGS = -I$(top_builddir)/release
 
 EXTRA_LIBRARIES = libstack.a
 libstack_a_SOURCES = stack.c

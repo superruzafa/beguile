@@ -569,12 +569,10 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
+MODULES_MIN
+MODULES_FULL
 MODULES
-SUPPORT_ES
-SUPPORT_EN
-SUPPORT_TAGS
 SUPPORT_OPTIONS
-DATE
 CHECK_LIBS
 CHECK_CFLAGS
 PKG_CONFIG_LIBDIR
@@ -3633,11 +3631,10 @@ fi
 
 fi
 
-DATE=`date +"%Y-%m-%d %H:%M:%S"`
-
-
 # Beguile modules
 MODULES="info.h header.h package.h util.h style.h signals.h core.h"
+MODULES_FULL=$MODULES
+MODULES_MIN=$MODULES
 
 # Check whether --enable-options was given.
 if test "${enable_options+set}" = set; then :
@@ -3647,12 +3644,10 @@ fi
 if test "x$enable_options" != "xno"; then :
 
     MODULES="$MODULES options.h"
-    SUPPORT_OPTIONS=x
 
-else
-  SUPPORT_OPTIONS=" "
 fi
 
+MODULES_FULL="$MODULES_FULL options.h"
 
 # Check whether --enable-tags was given.
 if test "${enable_tags+set}" = set; then :
@@ -3662,12 +3657,9 @@ fi
 if test "x$enable_tags" != "xno"; then :
 
     MODULES="$MODULES tags.h"
-    SUPPORT_TAGS=x
 
-else
-  SUPPORT_TAGS=" "
 fi
-
+MODULES_FULL="$MODULES_FULL tags.h"
 
 # Check whether --enable-english was given.
 if test "${enable_english+set}" = set; then :
@@ -3677,12 +3669,10 @@ fi
 if test "x$enable_english" != "xno"; then :
 
     MODULES="$MODULES lang_en.h"
-    SUPPORT_EN=x
 
-else
-  SUPPORT_EN=" "
 fi
-
+MODULES_FULL="$MODULES_FULL lang_en.h"
+MODULES_MIN="$MODULES_MIN lang_en.h"
 
 # Check whether --enable-spanish was given.
 if test "${enable_spanish+set}" = set; then :
@@ -3692,17 +3682,18 @@ fi
 if test "x$enable_spanish" = "xyes"; then :
 
     MODULES="$MODULES lang_es.h"
-    SUPPORT_ES=x
 
-else
-  SUPPORT_ES=" "
 fi
-
+MODULES_FULL="$MODULES_FULL lang_es.h"
 
 MODULES="$MODULES footer.h"
+MODULES_FULL="$MODULES_FULL footer.h"
+MODULES_MIN="$MODULES_MIN footer.h"
 
 
-ac_config_files="$ac_config_files Makefile src/Makefile src/package.h src/info.h tests/Makefile examples/Makefile examples/stack/Makefile examples/hooks/Makefile examples/i18n/Makefile"
+
+
+ac_config_files="$ac_config_files Makefile src/Makefile src/package.h src/info.h tests/Makefile release/Makefile examples/Makefile examples/stack/Makefile examples/hooks/Makefile examples/i18n/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -4456,6 +4447,7 @@ do
     "src/package.h") CONFIG_FILES="$CONFIG_FILES src/package.h" ;;
     "src/info.h") CONFIG_FILES="$CONFIG_FILES src/info.h" ;;
     "tests/Makefile") CONFIG_FILES="$CONFIG_FILES tests/Makefile" ;;
+    "release/Makefile") CONFIG_FILES="$CONFIG_FILES release/Makefile" ;;
     "examples/Makefile") CONFIG_FILES="$CONFIG_FILES examples/Makefile" ;;
     "examples/stack/Makefile") CONFIG_FILES="$CONFIG_FILES examples/stack/Makefile" ;;
     "examples/hooks/Makefile") CONFIG_FILES="$CONFIG_FILES examples/hooks/Makefile" ;;

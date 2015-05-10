@@ -25,42 +25,43 @@ AS_IF([test "x$with_tests" != "xno"], [
     AS_IF([test "x$ERB" != "xyes"], [AC_MSG_ERROR([No program 'erb' found. Install `erb` program or try ./configure --without-tests])])
 ])
 
-DATE=`date +"%Y-%m-%d %H:%M:%S"`
-AC_SUBST([DATE])
-
 # Beguile modules
 MODULES="info.h header.h package.h util.h style.h signals.h core.h"
+MODULES_FULL=$MODULES
+MODULES_MIN=$MODULES
 
 AC_ARG_ENABLE([options], AS_HELP_STRING([--disable-options], [Disable command line options]))
 AS_IF([test "x$enable_options" != "xno"], [
     MODULES="$MODULES options.h"
-    SUPPORT_OPTIONS=x
-], [SUPPORT_OPTIONS=" "])
+])
 AC_SUBST([SUPPORT_OPTIONS])
+MODULES_FULL="$MODULES_FULL options.h"
 
 AC_ARG_ENABLE([tags], AS_HELP_STRING([--disable-tags], [Disable tags]))
 AS_IF([test "x$enable_tags" != "xno"], [
     MODULES="$MODULES tags.h"
-    SUPPORT_TAGS=x
-], [SUPPORT_TAGS=" "])
-AC_SUBST([SUPPORT_TAGS])
+])
+MODULES_FULL="$MODULES_FULL tags.h"
 
 AC_ARG_ENABLE([english], AS_HELP_STRING([--disable-english], [Disable english language]))
 AS_IF([test "x$enable_english" != "xno"], [
     MODULES="$MODULES lang_en.h"
-    SUPPORT_EN=x
-], [SUPPORT_EN=" "])
-AC_SUBST([SUPPORT_EN])
+])
+MODULES_FULL="$MODULES_FULL lang_en.h"
+MODULES_MIN="$MODULES_MIN lang_en.h"
 
 AC_ARG_ENABLE([spanish], AS_HELP_STRING([--enable-spanish], [Enable spanish language]))
 AS_IF([test "x$enable_spanish" = "xyes"], [
     MODULES="$MODULES lang_es.h"
-    SUPPORT_ES=x
-], [SUPPORT_ES=" "])
-AC_SUBST([SUPPORT_ES])
+])
+MODULES_FULL="$MODULES_FULL lang_es.h"
 
 MODULES="$MODULES footer.h"
+MODULES_FULL="$MODULES_FULL footer.h"
+MODULES_MIN="$MODULES_MIN footer.h"
 AC_SUBST([MODULES])
+AC_SUBST([MODULES_FULL])
+AC_SUBST([MODULES_MIN])
 
 AC_CONFIG_FILES([
     Makefile
@@ -68,6 +69,7 @@ AC_CONFIG_FILES([
     src/package.h
     src/info.h
     tests/Makefile
+    release/Makefile
     examples/Makefile
     examples/stack/Makefile
     examples/hooks/Makefile
