@@ -32,6 +32,8 @@
 #define should_be_greater_or_equal_than(x)      BEGUILE_ASSERT_SHOULD_BE_GREATER_OR_EQUAL_THAN(x)
 #define should_be_null                          BEGUILE_ASSERT_SHOULD_BE_NULL
 #define should_not_be_null                      BEGUILE_ASSERT_SHOULD_NOT_BE_NULL
+#define strings_should_be_equal(s1, s2)         BEGUILE_ASSERT_STRINGS_SHOULD_BE_EQUAL(s1, s2)
+#define strings_should_not_be_equal(s1, s2)     BEGUILE_ASSERT_STRINGS_SHOULD_NOT_BE_EQUAL(s1, s2)
 
 #define BEGUILE_MSG_OK                          "OK"
 #define BEGUILE_MSG_FAIL                        "FAIL"

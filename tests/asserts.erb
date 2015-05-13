@@ -10,7 +10,10 @@
     ['should_be_greater_than',          '9',         'should_be_greater_than(5)',          '3'],
     ['should_be_greater_or_equal_than', '5',         'should_be_greater_or_equal_than(5)', '3'],
     ['should_be_null',                  'NULL',      'should_be_null',                     '(void *)1'],
-    ['should_not_be_null',              '(void *)1', 'should_not_be_null',                 'NULL']
+    ['should_not_be_null',              '(void *)1', 'should_not_be_null',                 'NULL'],
+
+    ['strings_should_be_equal',         'strings_should_be_equal("foo", ',     '"foo")', 'strings_should_be_equal("bar", '],
+    ['strings_should_not_be_equal',     'strings_should_not_be_equal("foo", ', '"bar")', 'strings_should_not_be_equal("bar", ']
   ]
 %>
 

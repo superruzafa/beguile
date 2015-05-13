@@ -22,16 +22,18 @@
 #define Y(...)                                  BEGUILE_STEP("Y",        #__VA_ARGS__, __VA_ARGS__)
 #define Pero(...)                               BEGUILE_STEP("Pero",     #__VA_ARGS__, __VA_ARGS__)
 
-#define deberia_ser_igual_a(x)                  BEGUILE_ASSERT_SHOULD_BE_EQUAL_TO(x)
-#define deberia_ser(x)                          BEGUILE_ASSERT_SHOULD_BE_EQUAL_TO(x)
-#define no_deberia_ser_igual_a(x)               BEGUILE_ASSERT_SHOULD_NOT_BE_EQUAL_TO(x)
-#define no_deberia_ser(x)                       BEGUILE_ASSERT_SHOULD_NOT_BE_EQUAL_TO(x)
-#define deberia_ser_menor_que(x)                BEGUILE_ASSERT_SHOULD_BE_LESS_THAN(x)
-#define deberia_ser_menor_o_igual_a(x)          BEGUILE_ASSERT_SHOULD_BE_LESS_OR_EQUAL_THAN(x)
-#define deberia_ser_mayor_que(x)                BEGUILE_ASSERT_SHOULD_BE_GREATER_THAN(x)
-#define deberia_ser_mayor_o_igual_a(x)          BEGUILE_ASSERT_SHOULD_BE_GREATER_OR_EQUAL_THAN(x)
-#define deberia_ser_nulo                        BEGUILE_ASSERT_SHOULD_BE_NULL
-#define no_deberia_ser_nulo                     BEGUILE_ASSERT_SHOULD_NOT_BE_NULL
+#define deberia_ser_igual_a(x)                          BEGUILE_ASSERT_SHOULD_BE_EQUAL_TO(x)
+#define deberia_ser(x)                                  BEGUILE_ASSERT_SHOULD_BE_EQUAL_TO(x)
+#define no_deberia_ser_igual_a(x)                       BEGUILE_ASSERT_SHOULD_NOT_BE_EQUAL_TO(x)
+#define no_deberia_ser(x)                               BEGUILE_ASSERT_SHOULD_NOT_BE_EQUAL_TO(x)
+#define deberia_ser_menor_que(x)                        BEGUILE_ASSERT_SHOULD_BE_LESS_THAN(x)
+#define deberia_ser_menor_o_igual_a(x)                  BEGUILE_ASSERT_SHOULD_BE_LESS_OR_EQUAL_THAN(x)
+#define deberia_ser_mayor_que(x)                        BEGUILE_ASSERT_SHOULD_BE_GREATER_THAN(x)
+#define deberia_ser_mayor_o_igual_a(x)                  BEGUILE_ASSERT_SHOULD_BE_GREATER_OR_EQUAL_THAN(x)
+#define deberia_ser_nulo                                BEGUILE_ASSERT_SHOULD_BE_NULL
+#define no_deberia_ser_nulo                             BEGUILE_ASSERT_SHOULD_NOT_BE_NULL
+#define las_cadenas_deberian_ser_iguales(s1, s2)        BEGUILE_ASSERT_STRINGS_SHOULD_BE_EQUAL(s1, s2)
+#define las_cadenas_no_deberian_ser_iguales(s1, s2)     BEGUILE_ASSERT_STRINGS_SHOULD_NOT_BE_EQUAL(s1, s2)
 
 #define BEGUILE_MSG_OK                          "BIEN"
 #define BEGUILE_MSG_FAIL                        "FALLO"
