@@ -37,9 +37,10 @@ typedef void (* BeguileHook)(BeguileHookType type, int is_child);
 typedef struct {
     int             output_enabled;
     int             fork_enabled;
+    int             pretty_print_enabled;
     BeguileHook     hook;
     char          **user_tags;
 } BeguileGlobalVars;
 
-BeguileGlobalVars beguile_global_vars = {1, 1, NULL, NULL};
+BeguileGlobalVars beguile_global_vars = {1, 1, 0, NULL, NULL};
 

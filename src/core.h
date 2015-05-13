@@ -209,7 +209,7 @@ typedef struct {
     if (!beguile_internal_flags.background_printed || beguile_internal_flags.outside_background) { \
         BEGUILE_INDENT_2();                                                    \
         BEGUILE_PRINT(BEGUILE_STYLE_STEP(step_keyword) " ");                   \
-        BEGUILE_PRETTY_PRINT(sentence);                                        \
+        beguile_pretty_print(sentence);                                        \
         BEGUILE_FLUSH();                                                       \
     }                                                                          \
     BEGUILE_MESSAGE_PARENT("G");                                               \

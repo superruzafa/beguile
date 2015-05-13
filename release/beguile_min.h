@@ -1,4 +1,4 @@
-/* Beguile 0.2.0, a BDD framework for C
+/* Beguile 0.2.1-dev, a BDD framework for C
  *
  * The MIT License (MIT)
  *
@@ -62,14 +62,15 @@ typedef void (* BeguileHook)(BeguileHookType type, int is_child);
 typedef struct {
     int             output_enabled;
     int             fork_enabled;
+    int             pretty_print_enabled;
     BeguileHook     hook;
     char          **user_tags;
 } BeguileGlobalVars;
 
-BeguileGlobalVars beguile_global_vars = {1, 1, NULL, NULL};
+BeguileGlobalVars beguile_global_vars = {1, 1, 0, NULL, NULL};
 
 #define BEGUILE_NAME "Beguile"
-#define BEGUILE_VERSION "0.2.0"
+#define BEGUILE_VERSION "0.2.1-dev"
 #define BEGUILE_AUTHOR "Alfonso Ruzafa"
 #define BEGUILE_EMAIL  "superruzafa@gmail.com"
 #define BEGUILE_BRAND "Beguile, a BDD framework for C"
@@ -78,19 +79,26 @@ BeguileGlobalVars beguile_global_vars = {1, 1, NULL, NULL};
 #define BEGUILE_PRINT(...) (beguile_global_vars.output_enabled ? printf(__VA_ARGS__) : 0)
 #define BEGUILE_FLUSH() (beguile_global_vars.output_enabled ? fflush(stdout) : 0)
 
-#define BEGUILE_PRETTY_PRINT(string)                                                                            \
-    do {                                                                                                        \
-        char *str = string;                                                                                     \
-        while (*str != '\0') {                                                                                  \
-            if (*str == ' ' || *str == '_' || *str == '(' || *str == ')') {                                     \
-                while (*str != '\0' && (*str == ' ' || *str == '_' || *str == '(' || *str == ')')) ++str;       \
-                if (*str != '\0') BEGUILE_PRINT(" ");                                                           \
-            } else {                                                                                            \
-                BEGUILE_PRINT("%c", *str);                                                                      \
-                ++str;                                                                                          \
-            }                                                                                                   \
-        }                                                                                                       \
-    } while(0)
+#define beguile_enable_pretty_print() beguile_global_vars.pretty_print_enabled = 1
+#define beguile_disable_pretty_print() beguile_global_vars.pretty_print_enabled = 0
+
+void beguile_pretty_print(char *string)
+{
+    char *str = string;
+    if (beguile_global_vars.pretty_print_enabled) {
+        while (*str != '\0') {
+            if (*str == ' ' || *str == '_' || *str == '(' || *str == ')') {
+                while (*str != '\0' && (*str == ' ' || *str == '_' || *str == '(' || *str == ')')) ++str;
+                if (*str != '\0') BEGUILE_PRINT(" ");
+            } else {
+                BEGUILE_PRINT("%c", *str);
+                ++str;
+            }
+        }
+    } else {
+        BEGUILE_PRINT("%s", string);
+    }
+}
 
 #define beguile_enable_output() beguile_global_vars.output_enabled = 1
 #define beguile_disable_output() beguile_global_vars.output_enabled = 0
@@ -370,7 +378,7 @@ typedef struct {
     if (!beguile_internal_flags.background_printed || beguile_internal_flags.outside_background) { \
         BEGUILE_INDENT_2();                                                    \
         BEGUILE_PRINT(BEGUILE_STYLE_STEP(step_keyword) " ");                   \
-        BEGUILE_PRETTY_PRINT(sentence);                                        \
+        beguile_pretty_print(sentence);                                        \
         BEGUILE_FLUSH();                                                       \
     }                                                                          \
     BEGUILE_MESSAGE_PARENT("G");                                               \

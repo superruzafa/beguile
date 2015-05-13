@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.68])
-AC_INIT([Beguile], [0.2.0], [superruzafa@gmail.com], [beguile], [https://github.com/superruzafa/beguile.git])
+AC_INIT([Beguile], [0.2.1-dev], [superruzafa@gmail.com], [beguile], [https://github.com/superruzafa/beguile.git])
 AM_INIT_AUTOMAKE([subdir-objects])
 AC_CONFIG_SRCDIR([src/package.h.in])
 AC_CONFIG_MACRO_DIR([m4])

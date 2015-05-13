@@ -5,7 +5,8 @@
     printf("Usage: %s [OPTION]... [TAGS]...\n", argv[0]);                      \
     puts("  -h, --help                 show this help");                       \
     puts("  -s, --silent               do not print features");                \
-    puts("  -f, --no-fork              do not fork process");
+    puts("  -f, --no-fork              do not fork process");                  \
+    puts("  -p, --pretty-print         pretty-print the output");
 
 #define BEGUILE_PARSE_TAGS(argc, argv)                                         \
     char beguile_tags_buffer[2048];                                            \
@@ -28,19 +29,21 @@
         int beguile_option;                                                    \
         int beguile_option_index = 0;                                          \
         struct option beguile_options[] = {                                    \
-            {"help",    no_argument, 0, 'h'},                                  \
-            {"silent",  no_argument, 0, 's'},                                  \
-            {"no-fork", no_argument, 0, 'f'},                                  \
-            {0,         0,           0, 0}                                     \
+            {"help",         no_argument, 0, 'h'},                             \
+            {"silent",       no_argument, 0, 's'},                             \
+            {"no-fork",      no_argument, 0, 'f'},                             \
+            {"pretty-print", no_argument, 0, 'p'},                             \
+            {0,              0,           0, 0}                                \
         };                                                                     \
-        beguile_option = getopt_long(argc, argv, "hsf", beguile_options, &beguile_option_index); \
+        beguile_option = getopt_long(argc, argv, "hsfp", beguile_options, &beguile_option_index); \
         while (beguile_option != -1) {                                         \
             switch (beguile_option) {                                          \
                 case 's': beguile_global_vars.output_enabled = 0; break;       \
                 case 'f': beguile_global_vars.fork_enabled = 0; break;         \
+                case 'p': beguile_global_vars.pretty_print_enabled = 1; break; \
                 case 'h': BEGUILE_HELP(argc, argv); exit(-1); break;           \
             }                                                                  \
-            beguile_option = getopt_long(argc, argv, "hsf", beguile_options, &beguile_option_index); \
+            beguile_option = getopt_long(argc, argv, "hsfp", beguile_options, &beguile_option_index); \
         }                                                                      \
         BEGUILE_PARSE_TAGS(argc, argv);                                        \
     } while (0);

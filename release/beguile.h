@@ -1,4 +1,4 @@
-/* Beguile 0.2.0, a BDD framework for C
+/* Beguile 0.2.1-dev, a BDD framework for C
  *
  * The MIT License (MIT)
  *
@@ -62,14 +62,15 @@ typedef void (* BeguileHook)(BeguileHookType type, int is_child);
 typedef struct {
     int             output_enabled;
     int             fork_enabled;
+    int             pretty_print_enabled;
     BeguileHook     hook;
     char          **user_tags;
 } BeguileGlobalVars;
 
-BeguileGlobalVars beguile_global_vars = {1, 1, NULL, NULL};
+BeguileGlobalVars beguile_global_vars = {1, 1, 0, NULL, NULL};
 
 #define BEGUILE_NAME "Beguile"
-#define BEGUILE_VERSION "0.2.0"
+#define BEGUILE_VERSION "0.2.1-dev"
 #define BEGUILE_AUTHOR "Alfonso Ruzafa"
 #define BEGUILE_EMAIL  "superruzafa@gmail.com"
 #define BEGUILE_BRAND "Beguile, a BDD framework for C"
@@ -78,19 +79,26 @@ BeguileGlobalVars beguile_global_vars = {1, 1, NULL, NULL};
 #define BEGUILE_PRINT(...) (beguile_global_vars.output_enabled ? printf(__VA_ARGS__) : 0)
 #define BEGUILE_FLUSH() (beguile_global_vars.output_enabled ? fflush(stdout) : 0)
 
-#define BEGUILE_PRETTY_PRINT(string)                                                                            \
-    do {                                                                                                        \
-        char *str = string;                                                                                     \
-        while (*str != '\0') {                                                                                  \
-            if (*str == ' ' || *str == '_' || *str == '(' || *str == ')') {                                     \
-                while (*str != '\0' && (*str == ' ' || *str == '_' || *str == '(' || *str == ')')) ++str;       \
-                if (*str != '\0') BEGUILE_PRINT(" ");                                                           \
-            } else {                                                                                            \
-                BEGUILE_PRINT("%c", *str);                                                                      \
-                ++str;                                                                                          \
-            }                                                                                                   \
-        }                                                                                                       \
-    } while(0)
+#define beguile_enable_pretty_print() beguile_global_vars.pretty_print_enabled = 1
+#define beguile_disable_pretty_print() beguile_global_vars.pretty_print_enabled = 0
+
+void beguile_pretty_print(char *string)
+{
+    char *str = string;
+    if (beguile_global_vars.pretty_print_enabled) {
+        while (*str != '\0') {
+            if (*str == ' ' || *str == '_' || *str == '(' || *str == ')') {
+                while (*str != '\0' && (*str == ' ' || *str == '_' || *str == '(' || *str == ')')) ++str;
+                if (*str != '\0') BEGUILE_PRINT(" ");
+            } else {
+                BEGUILE_PRINT("%c", *str);
+                ++str;
+            }
+        }
+    } else {
+        BEGUILE_PRINT("%s", string);
+    }
+}
 
 #define beguile_enable_output() beguile_global_vars.output_enabled = 1
 #define beguile_disable_output() beguile_global_vars.output_enabled = 0
@@ -370,7 +378,7 @@ typedef struct {
     if (!beguile_internal_flags.background_printed || beguile_internal_flags.outside_background) { \
         BEGUILE_INDENT_2();                                                    \
         BEGUILE_PRINT(BEGUILE_STYLE_STEP(step_keyword) " ");                   \
-        BEGUILE_PRETTY_PRINT(sentence);                                        \
+        beguile_pretty_print(sentence);                                        \
         BEGUILE_FLUSH();                                                       \
     }                                                                          \
     BEGUILE_MESSAGE_PARENT("G");                                               \
@@ -403,7 +411,8 @@ typedef struct {
     printf("Usage: %s [OPTION]... [TAGS]...\n", argv[0]);                      \
     puts("  -h, --help                 show this help");                       \
     puts("  -s, --silent               do not print features");                \
-    puts("  -f, --no-fork              do not fork process");
+    puts("  -f, --no-fork              do not fork process");                  \
+    puts("  -p, --pretty-print         pretty-print the output");
 
 #define BEGUILE_PARSE_TAGS(argc, argv)                                         \
     char beguile_tags_buffer[2048];                                            \
@@ -426,19 +435,21 @@ typedef struct {
         int beguile_option;                                                    \
         int beguile_option_index = 0;                                          \
         struct option beguile_options[] = {                                    \
-            {"help",    no_argument, 0, 'h'},                                  \
-            {"silent",  no_argument, 0, 's'},                                  \
-            {"no-fork", no_argument, 0, 'f'},                                  \
-            {0,         0,           0, 0}                                     \
+            {"help",         no_argument, 0, 'h'},                             \
+            {"silent",       no_argument, 0, 's'},                             \
+            {"no-fork",      no_argument, 0, 'f'},                             \
+            {"pretty-print", no_argument, 0, 'p'},                             \
+            {0,              0,           0, 0}                                \
         };                                                                     \
-        beguile_option = getopt_long(argc, argv, "hsf", beguile_options, &beguile_option_index); \
+        beguile_option = getopt_long(argc, argv, "hsfp", beguile_options, &beguile_option_index); \
         while (beguile_option != -1) {                                         \
             switch (beguile_option) {                                          \
                 case 's': beguile_global_vars.output_enabled = 0; break;       \
                 case 'f': beguile_global_vars.fork_enabled = 0; break;         \
+                case 'p': beguile_global_vars.pretty_print_enabled = 1; break; \
                 case 'h': BEGUILE_HELP(argc, argv); exit(-1); break;           \
             }                                                                  \
-            beguile_option = getopt_long(argc, argv, "hsf", beguile_options, &beguile_option_index); \
+            beguile_option = getopt_long(argc, argv, "hsfp", beguile_options, &beguile_option_index); \
         }                                                                      \
         BEGUILE_PARSE_TAGS(argc, argv);                                        \
     } while (0);
