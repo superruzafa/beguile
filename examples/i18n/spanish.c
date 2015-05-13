@@ -5,7 +5,7 @@
 #error Beguile compiled without Spanish support!
 #endif
 
-volatile int i;
+int i;
 
 FeatureRunner
 

@@ -4,13 +4,14 @@ typedef struct {
     int scenario_has_failed;
     int background_enabled;
     int background_printed;
+    int background_executed;
     int outside_background;
 } BeguileInternalFlags;
 
 typedef struct {
     int            written_bytes;
     void          *background_section;
-    jmp_buf        jmp_buf;
+    void          *scenario_section;
     pid_t          pid;
     int            pipe[2];
     int            tags_index;
@@ -28,7 +29,7 @@ typedef struct {
 
 #define FeatureRunnerHeader \
     BeguileStats beguile_stats = {0, 0, 0, 0, 0, 0, 0};                        \
-    volatile BeguileInternalFlags beguile_internal_flags = {0, 0, 0, 0, 0, 0}; \
+    BeguileInternalFlags beguile_internal_flags = {0, 0, 0, 0, 0, 0, 0}; \
     BeguileInternalVars beguile_internal_vars;                                 \
     beguile_internal_vars.tags_index = 0;                                      \
     beguile_internal_vars.tags[0] = NULL;                                      \
@@ -120,11 +121,12 @@ typedef struct {
 #define BEGUILE_ENDBACKGROUND                                                  \
         BEGUILE_TRIGGER_HOOK(BEGUILE_HOOK_AFTER_BACKGROUND, beguile_global_vars.fork_enabled); \
         BEGUILE_MESSAGE_PARENT("B");                                           \
-        longjmp(beguile_internal_vars.jmp_buf, 1);                             \
+        beguile_internal_flags.background_executed = 1;                         \
+        goto *beguile_internal_vars.scenario_section;                          \
     }                                                                          \
     beguile_internal_flags.background_enabled = 1;
 
-#define BEGUILE_SCENARIO(scenario_keyword, scenario_name)                      \
+#define BEGUILE_REAL_SCENARIO(scenario_keyword, scenario_name, line)           \
     do {                                                                       \
         BEGUILE_CHECK_SCENARIO_TAGS();                                         \
         ++beguile_stats.scenario_total;                                        \
@@ -178,15 +180,20 @@ typedef struct {
         }                                                                      \
         if (!beguile_global_vars.fork_enabled || beguile_internal_vars.pid == 0) { \
             if (beguile_global_vars.fork_enabled) close(beguile_internal_vars.pipe[0]); \
-            if (beguile_internal_vars.background_section != NULL && !setjmp(beguile_internal_vars.jmp_buf)) \
+            beguile_internal_flags.background_executed = 0;                     \
+            BEGUILE_CONCAT(beguile_scenario_, line):;                          \
+            beguile_internal_vars.scenario_section = && BEGUILE_CONCAT(beguile_scenario_, line); \
+            if (beguile_internal_vars.background_section != NULL && !beguile_internal_flags.background_executed) \
                 goto *beguile_internal_vars.background_section;                \
             BEGUILE_MESSAGE_PARENT("c");                                       \
             BEGUILE_TRIGGER_HOOK(BEGUILE_HOOK_BEFORE_SCENARIO, beguile_global_vars.fork_enabled); \
             beguile_internal_flags.outside_background = 1;                     \
             BEGUILE_EOL();                                                     \
             BEGUILE_INDENT_1();                                                \
-            BEGUILE_PRINT(BEGUILE_STYLE_SCENARIO(scenario_keyword ":") " "     \
-                scenario_name "\n");
+            BEGUILE_PRINT(BEGUILE_STYLE_SCENARIO(scenario_keyword ":") " " scenario_name "\n");
+
+#define BEGUILE_SCENARIO(scenario_keyword, scenario_name)                      \
+    BEGUILE_REAL_SCENARIO(scenario_keyword, scenario_name, __LINE__)
 
 #define BEGUILE_ENDSCENARIO                                                    \
             beguile_internal_flags.outside_background = 0;                     \

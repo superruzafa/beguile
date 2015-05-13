@@ -3,7 +3,7 @@
 
 START_TEST(background_should_not_be_executed_if_there_are_no_scenarios)
 {
-    volatile int i = 10;
+    int i = 10;
     FeatureRunnerHeader
     Feature ("")
         Background
@@ -21,7 +21,7 @@ END_TEST
 
 START_TEST(test_background_should_be_executed_if_there_is_at_least_one_scenario)
 {
-    volatile int i = -1;
+    int i = -1;
     FeatureRunnerHeader
     Feature ("")
         Background
@@ -43,7 +43,7 @@ END_TEST
 
 START_TEST(test_background_should_be_executed_if_there_is_at_least_one_scenario_fail_case)
 {
-    volatile int i = -1;
+    int i = -1;
     FeatureRunnerHeader
     Feature ("")
         Background
@@ -65,7 +65,7 @@ END_TEST
 
 START_TEST(test_background_should_be_executed_once_for_each_scenario)
 {
-    volatile int i = 5;
+    int i = 5;
     FeatureRunnerHeader
     Feature ("")
         Background
@@ -90,7 +90,7 @@ START_TEST(test_background_should_be_executed_once_for_each_scenario)
 }
 END_TEST
 
-START_TEST(test_backgrounds_not_work_with_non_volatile_variables)
+START_TEST(test_backgrounds_work_for_local_variables)
 {
     int i = 5;
     FeatureRunnerHeader
@@ -104,18 +104,18 @@ START_TEST(test_backgrounds_not_work_with_non_volatile_variables)
     EndFeature
 
     ck_assert_int_eq(beguile_stats.feature_total, 1);
-    ck_assert_int_eq(beguile_stats.feature_failed, 1);
+    ck_assert_int_eq(beguile_stats.feature_failed, 0);
     ck_assert_int_eq(beguile_stats.scenario_total, 1);
-    ck_assert_int_eq(beguile_stats.scenario_failed, 1);
+    ck_assert_int_eq(beguile_stats.scenario_failed, 0);
     ck_assert_int_eq(beguile_stats.step_total, 2);
-    ck_assert_int_eq(beguile_stats.step_failed, 1);
+    ck_assert_int_eq(beguile_stats.step_failed, 0);
 }
 END_TEST
 
 int i = 5;
 void set_i(int value) { i = value; }
 
-START_TEST(test_backgrounds_should_work_for_non_volatile_global_variables_and_functions)
+START_TEST(test_backgrounds_should_work_for_global_variables_and_functions)
 {
     FeatureRunnerHeader
     Feature ("")
@@ -150,8 +150,8 @@ int main(int argc, char **argv)
     tcase_add_test(tcase, test_background_should_be_executed_if_there_is_at_least_one_scenario_fail_case);
 
     tcase_add_test(tcase, test_background_should_be_executed_once_for_each_scenario);
-    tcase_add_test(tcase, test_backgrounds_not_work_with_non_volatile_variables);
-    tcase_add_test(tcase, test_backgrounds_should_work_for_non_volatile_global_variables_and_functions);
+    tcase_add_test(tcase, test_backgrounds_work_for_local_variables);
+    tcase_add_test(tcase, test_backgrounds_should_work_for_global_variables_and_functions);
 
     SRunner *runner = srunner_create(suite);
     srunner_run_all(runner, CK_VERBOSE);
